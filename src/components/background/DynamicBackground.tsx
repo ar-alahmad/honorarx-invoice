@@ -3,6 +3,7 @@
 import { Canvas } from '@react-three/fiber';
 import { Effects } from '@react-three/drei';
 import { useControls } from 'leva';
+import { Perf } from 'r3f-perf';
 import { Particles } from './particles/Particles';
 import { VignetteShader } from './shaders/vignetteShader';
 import { DynamicBackgroundProps, ParticleSystemConfig } from './types';

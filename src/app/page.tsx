@@ -39,7 +39,6 @@ export default function Home() {
 
         <div className='flex flex-col sm:flex-row gap-4 items-center justify-center mt-14'>
           <Button
-            size='sm'
             className='max-sm:hidden'
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}>
