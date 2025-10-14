@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { DynamicBackground } from '@/components/background';
 import { ErrorBoundary } from '@/components/background/ErrorBoundary';
+import { Button, Pill } from '@/components/ui';
 import { Leva } from 'leva';
 
 export default function Home() {
@@ -24,21 +25,32 @@ export default function Home() {
       {/* Main content */}
       <div className='relative z-10 flex flex-col items-center justify-center min-h-screen px-4'>
         <div className='text-center'>
+          <Pill className='mb-6'>BETA RELEASE</Pill>
           <h1
-            className='text-6xl md:text-8xl font-bold text-white mb-8 cursor-pointer transition-all duration-300 hover:scale-105'
+            className='text-5xl sm:text-6xl md:text-7xl font-bold text-white mb-8 cursor-pointer transition-all duration-300 hover:scale-105'
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}>
             HonorarX
           </h1>
-          <p className='text-xl md:text-2xl text-gray-300 mb-12 max-w-2xl mx-auto'>
+          <p className='font-mono text-sm sm:text-base text-foreground/60 text-balance mt-8 max-w-[440px] mx-auto mb-12'>
             Professional invoice management with stunning visual experiences
           </p>
-          <button
-            className='px-8 py-4 bg-white text-black font-semibold rounded-lg hover:bg-gray-200 transition-colors duration-200'
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}>
-            Get Started
-          </button>
+
+          <div className='flex flex-col sm:flex-row gap-4 items-center justify-center'>
+            <Button
+              className='max-sm:hidden'
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}>
+              [Get Started]
+            </Button>
+            <Button
+              size='sm'
+              className='sm:hidden'
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}>
+              [Get Started]
+            </Button>
+          </div>
         </div>
       </div>
 

@@ -54,7 +54,7 @@ export function Particles({
     m.uniforms.initialPositions.value =
       simulationMaterial.uniforms.positions.value;
     return m;
-  }, [simulationMaterial]);
+  }, [simulationMaterial, target.texture]);
 
   // Orthographic camera for simulation pass
   const [scene] = useState(() => new THREE.Scene());
@@ -92,7 +92,6 @@ export function Particles({
     // Render simulation pass to FBO
     state.gl.setRenderTarget(target);
     state.gl.clear();
-    // @ts-ignore
     state.gl.render(scene, camera);
     state.gl.setRenderTarget(null);
 
@@ -149,7 +148,6 @@ export function Particles({
     <>
       {/* Simulation pass - renders particle positions to FBO */}
       {createPortal(
-        // @ts-ignore
         <mesh material={simulationMaterial}>
           <bufferGeometry>
             <bufferAttribute
@@ -159,12 +157,10 @@ export function Particles({
             <bufferAttribute attach='attributes-uv' args={[uvs, 2]} />
           </bufferGeometry>
         </mesh>,
-        // @ts-ignore
         scene
       )}
 
       {/* Main particle system - renders using FBO texture */}
-      {/* @ts-ignore */}
       <points material={dofPointsMaterial} {...props}>
         <bufferGeometry>
           <bufferAttribute attach='attributes-position' args={[particles, 3]} />

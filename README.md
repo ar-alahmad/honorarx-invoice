@@ -1,4 +1,13 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HonorarX Invoice
+
+Professional invoice management system with stunning visual experiences.
+
+## Features
+
+- **Dynamic Particle Background**: Sophisticated WebGL-based particle system
+- **Modern Tech Stack**: Next.js 15.5.5, React 19.1.0, TypeScript, Tailwind CSS
+- **Interactive UI**: Hover effects and smooth animations
+- **Responsive Design**: Works on desktop and mobile devices
 
 ## Getting Started
 
@@ -6,31 +15,43 @@ First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Dynamic Background System
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The project includes a reusable dynamic background system that can be used on any page:
 
-## Learn More
+```tsx
+import { DynamicBackground } from '@/components/background';
 
-To learn more about Next.js, take a look at the following resources:
+export default function MyPage() {
+  return (
+    <div className='relative min-h-screen'>
+      <DynamicBackground />
+      <div className='relative z-10'>{/* Your content here */}</div>
+    </div>
+  );
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Framework**: Next.js 15.5.5 with App Router
+- **UI**: React 19.1.0 with TypeScript
+- **Styling**: Tailwind CSS 4.1.14
+- **3D Graphics**: Three.js with React Three Fiber
+- **Fonts**: Geist font family
 
-## Deploy on Vercel
+## Development
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The project includes development tools:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Leva Controls**: Real-time parameter adjustment
+- **Performance Monitor**: WebGL performance tracking
+- **Error Boundaries**: Graceful fallbacks for WebGL issues
+
+## License
+
+Private project - HonorarX Invoice Management System.
