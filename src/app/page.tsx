@@ -10,7 +10,7 @@ export default function Home() {
   const [isHovering, setIsHovering] = useState(false);
 
   return (
-    <div className='flex flex-col h-svh justify-between'>
+    <div className='flex flex-col h-svh justify-between overflow-hidden'>
       {/* Dynamic particle background with error boundary */}
       <ErrorBoundary>
         <DynamicBackground
@@ -39,6 +39,7 @@ export default function Home() {
 
         <div className='flex flex-col sm:flex-row gap-4 items-center justify-center mt-14'>
           <Button
+            size='sm'
             className='max-sm:hidden'
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}>
