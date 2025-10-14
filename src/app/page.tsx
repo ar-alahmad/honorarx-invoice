@@ -27,7 +27,7 @@ export default function Home() {
         <div className='text-center'>
           <Pill className='mb-6'>BETA RELEASE</Pill>
           <h1
-            className='text-5xl sm:text-6xl md:text-7xl font-bold text-white mb-8 cursor-pointer transition-all duration-300 hover:scale-105'
+            className='text-5xl sm:text-6xl md:text-7xl font-sentient font-bold text-white mb-8 cursor-pointer transition-all duration-300 hover:scale-105'
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}>
             HonorarX
