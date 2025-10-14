@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { DynamicBackground } from '@/components/background';
 import { ErrorBoundary } from '@/components/background/ErrorBoundary';
-import { Button, Pill } from '@/components/ui';
+import { Button, Pill, NavBarDemo } from '@/components/ui';
 import { Leva } from 'leva';
 
 export default function Home() {
@@ -56,6 +56,9 @@ export default function Home() {
 
       {/* Leva controls (hidden in production) */}
       <Leva hidden />
+
+      {/* Navigation Bar */}
+      <NavBarDemo />
     </div>
   );
 }
