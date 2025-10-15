@@ -170,7 +170,7 @@ function PasswordResetForm() {
               <Button
                 type='submit'
                 disabled={isLoading}
-                className='w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors'>
+                className='w-full'>
                 {isLoading ? 'Wird gesendet...' : 'Link senden'}
               </Button>
             </form>
@@ -213,7 +213,7 @@ function PasswordResetForm() {
               <Button
                 type='submit'
                 disabled={isLoading}
-                className='w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition-colors'>
+                className='w-full'>
                 {isLoading ? 'Wird aktualisiert...' : 'Passwort aktualisieren'}
               </Button>
             </form>

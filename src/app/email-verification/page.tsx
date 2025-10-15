@@ -195,7 +195,7 @@ function EmailVerificationForm() {
             <Button
               type='submit'
               disabled={isLoading || code.length !== 6}
-              className='w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
+              className='w-full'>
               {isLoading ? 'Wird bestätigt...' : 'E-Mail bestätigen'}
             </Button>
           </form>
