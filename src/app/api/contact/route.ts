@@ -15,16 +15,23 @@ const contactSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const formData = await request.formData();
+    
     // Check if user is authenticated
     const session = await auth();
-    if (!session?.user) {
+    
+    // Check if there are file uploads
+    const fileEntries = Array.from(formData.entries()).filter(([key]) =>
+      key.startsWith('file_')
+    );
+    
+    // Require authentication only for file uploads
+    if (fileEntries.length > 0 && !session?.user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Authentication required for file uploads' },
         { status: 401 }
       );
     }
-
-    const formData = await request.formData();
 
     // Extract form fields
     const name = formData.get('name') as string;
@@ -40,27 +47,25 @@ export async function POST(request: NextRequest) {
       message,
     });
 
-    // Handle file uploads
+    // Handle file uploads (only if user is authenticated)
     const uploadedFiles: string[] = [];
-    const fileEntries = Array.from(formData.entries()).filter(([key]) =>
-      key.startsWith('file_')
-    );
-
-    for (const [, file] of fileEntries) {
-      if (file instanceof File) {
-        try {
-          // Upload file to Vercel Blob
-          const blob = await put(
-            `contact-files/${Date.now()}-${file.name}`,
-            file,
-            {
-              access: 'public',
-            }
-          );
-          uploadedFiles.push(blob.url);
-        } catch (fileError) {
-          console.error('File upload error:', fileError);
-          // Continue with email even if file upload fails
+    if (session?.user && fileEntries.length > 0) {
+      for (const [, file] of fileEntries) {
+        if (file instanceof File) {
+          try {
+            // Upload file to Vercel Blob
+            const blob = await put(
+              `contact-files/${Date.now()}-${file.name}`,
+              file,
+              {
+                access: 'public',
+              }
+            );
+            uploadedFiles.push(blob.url);
+          } catch (fileError) {
+            console.error('File upload error:', fileError);
+            // Continue with email even if file upload fails
+          }
         }
       }
     }
@@ -110,8 +115,13 @@ export async function POST(request: NextRequest) {
                   <p style="margin: 8px 0; color: #333333;"><strong>Name:</strong> ${validatedData.name}</p>
                   <p style="margin: 8px 0; color: #333333;"><strong>E-Mail:</strong> <a href="mailto:${validatedData.email}" style="color: #007bff; text-decoration: none;">${validatedData.email}</a></p>
                   <p style="margin: 8px 0; color: #333333;"><strong>Betreff:</strong> ${validatedData.subject}</p>
-                  <p style="margin: 8px 0; color: #333333;"><strong>Benutzer-ID:</strong> ${session.user.id}</p>
-                  <p style="margin: 8px 0; color: #333333;"><strong>Authentifiziert:</strong> Ja (angemeldeter Benutzer)</p>
+                  ${session?.user ? `
+                    <p style="margin: 8px 0; color: #333333;"><strong>Benutzer-ID:</strong> ${session.user.id}</p>
+                    <p style="margin: 8px 0; color: #333333;"><strong>Authentifiziert:</strong> Ja (angemeldeter Benutzer)</p>
+                  ` : `
+                    <p style="margin: 8px 0; color: #ff6b35;"><strong>Authentifiziert:</strong> Nein (anonymer Benutzer)</p>
+                    <p style="margin: 8px 0; color: #666666; font-size: 12px;"><em>Hinweis: Dateianhänge sind nur für angemeldete Benutzer verfügbar.</em></p>
+                  `}
                 </div>
                 
                 <div style="background-color: #ffffff; padding: 20px; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 20px;">
