@@ -61,8 +61,8 @@ export default function NutzungsbedingungenPage() {
                 <div className='space-y-3 sm:space-y-4 text-sm sm:text-base text-foreground/90 leading-relaxed flex-grow'>
                   <p>
                     Diese Nutzungsbedingungen regeln die Nutzung der
-                    Webanwendung Honorar X (nachfolgend „Anwendung" oder „App"
-                    genannt).
+                    Webanwendung Honorar X (nachfolgend &ldquo;Anwendung&rdquo;
+                    oder &ldquo;App&rdquo; genannt).
                   </p>
                   <p>
                     Mit der Registrierung oder Nutzung der App erklären Sie sich
