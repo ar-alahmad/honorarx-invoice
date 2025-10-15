@@ -10,6 +10,8 @@ const getEncryptionKey = (): Buffer => {
 };
 
 export const encrypt = (text: string): string => {
+  if (!text) return text; // Don't encrypt empty strings
+  
   const key = getEncryptionKey();
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipher(ALGORITHM, key);
@@ -21,17 +23,24 @@ export const encrypt = (text: string): string => {
 };
 
 export const decrypt = (encryptedText: string): string => {
-  const key = getEncryptionKey();
-  const textParts = encryptedText.split(':');
-  textParts.shift(); // Remove IV (not used in this simplified version)
-  const encrypted = textParts.join(':');
+  if (!encryptedText) return encryptedText; // Don't decrypt empty strings
+  
+  try {
+    const key = getEncryptionKey();
+    const textParts = encryptedText.split(':');
+    textParts.shift(); // Remove IV (not used in this simplified version)
+    const encrypted = textParts.join(':');
 
-  const decipher = crypto.createDecipher(ALGORITHM, key);
+    const decipher = crypto.createDecipher(ALGORITHM, key);
 
-  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
 
-  return decrypted;
+    return decrypted;
+  } catch (error) {
+    console.error('Decryption error:', error);
+    return encryptedText; // Return original if decryption fails
+  }
 };
 
 // Hash password using bcrypt

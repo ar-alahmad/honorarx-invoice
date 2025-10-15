@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { decryptUserData, encryptUserData } from '@/lib/encryption-middleware';
 import { z } from 'zod';
 
 const updateProfileSchema = z.object({
@@ -49,7 +50,10 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ user });
+    // Decrypt sensitive data before returning
+    const decryptedUser = decryptUserData(user);
+
+    return NextResponse.json({ user: decryptedUser });
   } catch (error) {
     console.error('Profile fetch error:', error);
     return NextResponse.json(
@@ -70,9 +74,12 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const validatedData = updateProfileSchema.parse(body);
 
+    // Encrypt sensitive data before updating
+    const encryptedData = encryptUserData(validatedData);
+    
     const updatedUser = await db.user.update({
       where: { id: session.user.id },
-      data: validatedData,
+      data: encryptedData as Parameters<typeof db.user.update>[0]['data'],
       select: {
         id: true,
         email: true,
@@ -90,9 +97,12 @@ export async function PUT(request: NextRequest) {
       },
     });
 
+    // Decrypt sensitive data before returning
+    const decryptedUser = decryptUserData(updatedUser);
+
     return NextResponse.json({
       message: 'Profile updated successfully',
-      user: updatedUser,
+      user: decryptedUser,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

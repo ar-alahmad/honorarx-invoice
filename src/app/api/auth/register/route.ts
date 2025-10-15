@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { hashPassword } from '@/lib/encryption';
+import { encryptUserData } from '@/lib/encryption-middleware';
 import { z } from 'zod';
 
 const registerSchema = z.object({
@@ -31,16 +32,19 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(validatedData.password);
 
-    // Create user
+    // Create user with encrypted sensitive data
+    const userData = {
+      email: validatedData.email,
+      password: hashedPassword,
+      firstName: validatedData.firstName,
+      lastName: validatedData.lastName,
+      company: validatedData.company,
+      isEmailVerified: false, // Will be verified via email
+    };
+    
+    const encryptedUserData = encryptUserData(userData);
     const user = await db.user.create({
-      data: {
-        email: validatedData.email,
-        password: hashedPassword,
-        firstName: validatedData.firstName,
-        lastName: validatedData.lastName,
-        company: validatedData.company,
-        isEmailVerified: false, // Will be verified via email
-      },
+      data: encryptedUserData as Parameters<typeof db.user.create>[0]['data'],
       select: {
         id: true,
         email: true,
