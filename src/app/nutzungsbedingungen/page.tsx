@@ -263,7 +263,7 @@ export default function NutzungsbedingungenPage() {
 
               {/* Section 10: Kontakt */}
               <div className='col-span-full bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30'>
-                <div className='flex items-start mb-4'>
+                <div className='flex items-center justify-center mb-4'>
                   <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
                     <span className='text-primary font-bold text-sm'>10</span>
                   </div>
@@ -271,17 +271,19 @@ export default function NutzungsbedingungenPage() {
                     Kontakt
                   </h2>
                 </div>
-                <div className='space-y-3 text-sm sm:text-base text-foreground/90 leading-relaxed'>
+                <div className='space-y-3 text-sm sm:text-base text-foreground/90 leading-relaxed text-center'>
                   <p>
                     Fragen zu diesen Nutzungsbedingungen oder zur App richten
                     Sie bitte an:
                   </p>
-                  <div className='bg-background/50 border border-border/30 rounded-lg p-3 sm:p-4 mt-3'>
-                    <a
-                      href='mailto:info@honorarx.de'
-                      className='text-primary font-mono text-sm sm:text-base hover:text-primary/80 transition-colors duration-200 inline-flex items-center gap-2'>
-                      📧 info@honorarx.de
-                    </a>
+                  <div className='flex justify-center mt-3'>
+                    <div className='bg-background/50 border border-border/30 rounded-lg p-3 sm:p-4'>
+                      <a
+                        href='mailto:info@honorarx.de'
+                        className='text-primary font-mono text-sm sm:text-base hover:text-primary/80 transition-colors duration-200 inline-flex items-center gap-2'>
+                        📧 info@honorarx.de
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
