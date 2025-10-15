@@ -211,7 +211,7 @@ export default function ImpressumPage() {
 
               {/* Section 7: Online-Streitbeilegung */}
               <div className='col-span-full bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30'>
-                <div className='flex items-start mb-4'>
+                <div className='flex items-center justify-center mb-4'>
                   <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
                     <span className='text-primary font-bold text-sm'>7</span>
                   </div>
@@ -219,12 +219,12 @@ export default function ImpressumPage() {
                     Online-Streitbeilegung (OS-Plattform)
                   </h2>
                 </div>
-                <div className='space-y-3 text-sm sm:text-base text-foreground/90 leading-relaxed'>
+                <div className='space-y-3 text-sm sm:text-base text-foreground/90 leading-relaxed text-center'>
                   <p>
                     Die Europäische Kommission stellt eine Plattform zur
                     Online-Streitbeilegung (OS) bereit:
                   </p>
-                  <div className='flex items-center gap-2'>
+                  <div className='flex items-center justify-center gap-2'>
                     <span>👉</span>
                     <a
                       href='https://ec.europa.eu/consumers/odr'
