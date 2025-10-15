@@ -1,0 +1,135 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Will be hashed with bcrypt
+  firstName String?
+  lastName  String?
+  company   String?
+  
+  // German business information
+  taxId     String?  // Steuernummer
+  vatId     String?  // Umsatzsteuer-ID
+  address   String?
+  city      String?
+  postalCode String?
+  country   String   @default("Deutschland")
+  phone     String?
+  
+  // Privacy and GDPR compliance
+  isEmailVerified Boolean @default(false)
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  invoices Invoice[]
+  sessions Session[]
+  
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  invoiceNumber String @unique // Rechnungsnummer
+  userId      String
+  
+  // Invoice details
+  title       String
+  description String?
+  issueDate   DateTime
+  dueDate     DateTime
+  status      InvoiceStatus @default(DRAFT)
+  
+  // Financial information
+  subtotal    Decimal  @db.Decimal(10, 2)
+  taxRate     Decimal  @db.Decimal(5, 2) @default(19.00) // German VAT rate
+  taxAmount   Decimal  @db.Decimal(10, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  currency    String   @default("EUR")
+  
+  // Client information (encrypted)
+  clientName     String
+  clientEmail    String?
+  clientAddress  String?
+  clientCity     String?
+  clientPostalCode String?
+  clientCountry  String @default("Deutschland")
+  clientTaxId    String?
+  clientVatId    String?
+  
+  // Invoice items
+  items InvoiceItem[]
+  
+  // File storage
+  pdfUrl     String?
+  pdfFileName String?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sentAt    DateTime?
+  paidAt    DateTime?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id        String  @id @default(cuid())
+  invoiceId String
+  
+  description String
+  quantity    Decimal @db.Decimal(10, 2)
+  unitPrice   Decimal @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
+  
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  @@map("invoice_items")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  @@map("contact_messages")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}

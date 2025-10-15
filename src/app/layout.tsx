@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import '../styles/globals.css';
 import { NavbarWrapper } from '@/components/layout';
+import { SessionProvider } from '@/components/providers/SessionProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -28,9 +29,11 @@ export default function RootLayout({
     <html lang='en'>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* Navigation Bar - appears on all pages */}
-        <NavbarWrapper />
-        {children}
+        <SessionProvider>
+          {/* Navigation Bar - appears on all pages */}
+          <NavbarWrapper />
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );
