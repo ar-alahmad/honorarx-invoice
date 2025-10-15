@@ -132,13 +132,30 @@ export default function KontaktPage() {
 
     setIsSubmitting(true);
 
-    // Simulate form submission
+    // Send email using our API
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Fehler beim Senden der E-Mail');
+      }
+
       setIsSubmitted(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
       console.error('Form submission error:', error);
+      setErrors({
+        message:
+          'Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut.',
+      });
     } finally {
       setIsSubmitting(false);
     }

@@ -98,7 +98,9 @@ function LoginForm() {
               placeholder='max@beispiel.de'
             />
             {errors.email && (
-              <p className='text-red-400 text-sm mt-1'>{errors.email.message}</p>
+              <p className='text-red-400 text-sm mt-1'>
+                {errors.email.message}
+              </p>
             )}
           </div>
 
@@ -113,7 +115,9 @@ function LoginForm() {
               placeholder='Ihr Passwort'
             />
             {errors.password && (
-              <p className='text-red-400 text-sm mt-1'>{errors.password.message}</p>
+              <p className='text-red-400 text-sm mt-1'>
+                {errors.password.message}
+              </p>
             )}
           </div>
 
@@ -123,12 +127,13 @@ function LoginForm() {
                 type='checkbox'
                 className='w-4 h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500/50 focus:ring-2'
               />
-              <span className='ml-2 text-white/70 text-sm'>Angemeldet bleiben</span>
+              <span className='ml-2 text-white/70 text-sm'>
+                Angemeldet bleiben
+              </span>
             </label>
             <a
-              href='/forgot-password'
-              className='text-blue-400 hover:text-blue-300 text-sm'
-            >
+              href='/passwort-zuruecksetzen'
+              className='text-blue-400 hover:text-blue-300 text-sm'>
               Passwort vergessen?
             </a>
           </div>
@@ -136,8 +141,7 @@ function LoginForm() {
           <Button
             type='submit'
             disabled={isLoading}
-            className='w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-          >
+            className='w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
             {isLoading ? 'Anmeldung läuft...' : 'Anmelden'}
           </Button>
         </form>
@@ -147,8 +151,7 @@ function LoginForm() {
             Noch kein Konto?{' '}
             <a
               href='/registrieren'
-              className='text-blue-400 hover:text-blue-300 font-medium'
-            >
+              className='text-blue-400 hover:text-blue-300 font-medium'>
               Hier registrieren
             </a>
           </p>
