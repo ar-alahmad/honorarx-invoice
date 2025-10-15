@@ -28,7 +28,8 @@ import { useSession, signOut } from 'next-auth/react';
 export function NavBarDemo() {
   const { data: session } = useSession();
   const isLoggedIn = !!session;
-  const userFamilyName = session?.user?.name?.split(' ').pop()?.toUpperCase() || 'USER';
+  const userFamilyName =
+    session?.user?.name?.split(' ').pop()?.toUpperCase() || 'USER';
 
   const navItems = [
     {
@@ -92,8 +93,8 @@ export function NavBarDemo() {
       dropdown: isLoggedIn
         ? [
             {
-              name: 'Profil',
-              url: '/profil',
+              name: 'Dashboard',
+              url: '/dashboard',
               icon: User,
             },
             {
