@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { z } from 'zod';
+import { put } from '@vercel/blob';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -13,13 +14,69 @@ const contactSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const validatedData = contactSchema.parse(body);
+    const formData = await request.formData();
+
+    // Extract form fields
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    const subject = formData.get('subject') as string;
+    const message = formData.get('message') as string;
+
+    // Validate form data
+    const validatedData = contactSchema.parse({
+      name,
+      email,
+      subject,
+      message,
+    });
+
+    // Handle file uploads
+    const uploadedFiles: string[] = [];
+    const fileEntries = Array.from(formData.entries()).filter(([key]) =>
+      key.startsWith('file_')
+    );
+
+    for (const [, file] of fileEntries) {
+      if (file instanceof File) {
+        try {
+          // Upload file to Vercel Blob
+          const blob = await put(
+            `contact-files/${Date.now()}-${file.name}`,
+            file,
+            {
+              access: 'public',
+            }
+          );
+          uploadedFiles.push(blob.url);
+        } catch (fileError) {
+          console.error('File upload error:', fileError);
+          // Continue with email even if file upload fails
+        }
+      }
+    }
+
+    // Create file links HTML
+    const fileLinksHtml =
+      uploadedFiles.length > 0
+        ? `
+        <div style="background-color: #fff3cd; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+          <h3 style="color: #333333; margin-top: 0; margin-bottom: 15px;">Angehängte Dateien:</h3>
+          <ul style="margin: 0; padding-left: 20px;">
+            ${uploadedFiles
+              .map((url) => {
+                const fileName = url.split('/').pop() || 'Datei';
+                return `<li style="margin: 5px 0;"><a href="${url}" style="color: #007bff; text-decoration: none;">${fileName}</a></li>`;
+              })
+              .join('')}
+          </ul>
+        </div>
+      `
+        : '';
 
     // Send email using Resend
     const emailData = await resend.emails.send({
-      from: 'HonorarX <noreply@honorarx.de>', // Your verified domain (after DNS setup)
-      to: ['info@honorarx.de'], // Your business email for production
+      from: 'HonorarX <noreply@honorarx.de>',
+      to: ['info@honorarx.de'],
       subject: `Contact Form: ${validatedData.subject}`,
       html: `
             <!DOCTYPE html>
@@ -50,6 +107,8 @@ export async function POST(request: NextRequest) {
                   <div style="color: #333333; line-height: 1.6; white-space: pre-wrap; background-color: #f8f9fa; padding: 15px; border-radius: 5px;">${validatedData.message}</div>
                 </div>
                 
+                ${fileLinksHtml}
+                
                 <div style="margin-top: 30px; padding: 20px; background-color: #e8f4f8; border-radius: 8px; border-left: 4px solid #17a2b8;">
                   <p style="margin: 0; color: #666666; font-size: 14px; line-height: 1.5;">
                     <strong>Hinweis:</strong> Diese Nachricht wurde über das HonorarX Kontaktformular auf 
@@ -68,13 +127,11 @@ export async function POST(request: NextRequest) {
           `,
     });
 
-    // Also save to database for record keeping
-    // TODO: Add database storage here if needed
-
     return NextResponse.json(
       {
         message: 'Email sent successfully',
         emailId: emailData.data?.id,
+        uploadedFiles: uploadedFiles.length,
       },
       { status: 200 }
     );

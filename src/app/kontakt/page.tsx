@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { DynamicBackground, ErrorBoundary } from '@/components/effects';
 import { Button } from '@/components/ui';
 import { Leva } from 'leva';
@@ -14,6 +15,9 @@ import {
   Shield,
   Users,
   MessageCircle,
+  Upload,
+  X,
+  FileImage,
 } from 'lucide-react';
 
 interface FormData {
@@ -21,6 +25,7 @@ interface FormData {
   email: string;
   subject: string;
   message: string;
+  files: File[];
 }
 
 interface FormErrors {
@@ -28,6 +33,7 @@ interface FormErrors {
   email?: string;
   subject?: string;
   message?: string;
+  files?: string;
 }
 
 const subjectOptions = [
@@ -43,11 +49,13 @@ const subjectOptions = [
 ];
 
 export default function KontaktPage() {
+  const { data: session } = useSession();
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     subject: '',
     message: '',
+    files: [],
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -73,6 +81,18 @@ export default function KontaktPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Auto-populate form fields if user is logged in
+  useEffect(() => {
+    if (session?.user?.email) {
+      const user = session.user;
+      setFormData((prev) => ({
+        ...prev,
+        email: user.email || '',
+        name: user.name || '',
+      }));
+    }
+  }, [session]);
+
   // Animate cards and form elements on mount
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -85,9 +105,12 @@ export default function KontaktPage() {
 
       // Animate form elements after cards
       [0, 1, 2, 3, 4].forEach((index) => {
-        setTimeout(() => {
-          setVisibleFormElements((prev) => [...prev, index]);
-        }, 600 + index * 100);
+        setTimeout(
+          () => {
+            setVisibleFormElements((prev) => [...prev, index]);
+          },
+          600 + index * 100
+        );
       });
     }, 300);
     return () => clearTimeout(timer);
@@ -119,6 +142,35 @@ export default function KontaktPage() {
       newErrors.message = 'Nachricht muss mindestens 10 Zeichen lang sein';
     }
 
+    // File validation
+    if (formData.files.length > 0) {
+      const maxFileSize = 10 * 1024 * 1024; // 10MB
+      const allowedTypes = [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'application/pdf',
+        'text/plain',
+      ];
+
+      for (const file of formData.files) {
+        if (file.size > maxFileSize) {
+          newErrors.files = 'Dateien dürfen maximal 10MB groß sein';
+          break;
+        }
+        if (!allowedTypes.includes(file.type)) {
+          newErrors.files =
+            'Nur Bilder (JPG, PNG, GIF, WebP), PDF und Textdateien sind erlaubt';
+          break;
+        }
+      }
+
+      if (formData.files.length > 5) {
+        newErrors.files = 'Maximal 5 Dateien erlaubt';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -132,14 +184,22 @@ export default function KontaktPage() {
 
     setIsSubmitting(true);
 
-    // Send email using our API
     try {
+      // Create FormData for file upload
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('subject', formData.subject);
+      formDataToSend.append('message', formData.message);
+
+      // Append files
+      formData.files.forEach((file, index) => {
+        formDataToSend.append(`file_${index}`, file);
+      });
+
       const response = await fetch('/api/contact', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        body: formDataToSend, // Don't set Content-Type header, let browser set it with boundary
       });
 
       const result = await response.json();
@@ -149,7 +209,7 @@ export default function KontaktPage() {
       }
 
       setIsSubmitted(true);
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      setFormData({ name: '', email: '', subject: '', message: '', files: [] });
     } catch (error) {
       console.error('Form submission error:', error);
       setErrors({
@@ -167,6 +227,30 @@ export default function KontaktPage() {
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setFormData((prev) => ({ ...prev, files: [...prev.files, ...files] }));
+    // Clear file error when files are added
+    if (errors.files) {
+      setErrors((prev) => ({ ...prev, files: undefined }));
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      files: prev.files.filter((_, i) => i !== index),
+    }));
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   if (isSubmitted) {
@@ -285,6 +369,11 @@ export default function KontaktPage() {
                       htmlFor='name'
                       className='block text-sm font-medium text-foreground/90 mb-2'>
                       Ihr Name *
+                      {session?.user && (
+                        <span className='ml-2 text-xs text-primary/70 font-normal'>
+                          (aus Ihrem Konto)
+                        </span>
+                      )}
                     </label>
                     <input
                       type='text'
@@ -295,7 +384,7 @@ export default function KontaktPage() {
                       }
                       className={`w-full px-3 py-2.5 bg-background/50 border rounded-lg text-foreground placeholder-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
                         errors.name ? 'border-red-500' : 'border-border'
-                      }`}
+                      } ${session?.user ? 'bg-primary/5 border-primary/20' : ''}`}
                       placeholder='Max Mustermann'
                     />
                     {errors.name && (
@@ -315,6 +404,11 @@ export default function KontaktPage() {
                       htmlFor='email'
                       className='block text-sm font-medium text-foreground/90 mb-2'>
                       Ihre E-Mail-Adresse *
+                      {session?.user && (
+                        <span className='ml-2 text-xs text-primary/70 font-normal'>
+                          (aus Ihrem Konto)
+                        </span>
+                      )}
                     </label>
                     <input
                       type='email'
@@ -325,7 +419,7 @@ export default function KontaktPage() {
                       }
                       className={`w-full px-3 py-2.5 bg-background/50 border rounded-lg text-foreground placeholder-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
                         errors.email ? 'border-red-500' : 'border-border'
-                      }`}
+                      } ${session?.user ? 'bg-primary/5 border-primary/20' : ''}`}
                       placeholder='max@beispiel.de'
                     />
                     {errors.email && (
@@ -429,6 +523,78 @@ export default function KontaktPage() {
                         {errors.message}
                       </p>
                     )}
+                  </div>
+
+                  {/* File Upload Field */}
+                  <div
+                    className={`transform transition-all duration-700 ease-out ${
+                      visibleFormElements.includes(4)
+                        ? 'opacity-100 translate-y-0 scale-100'
+                        : 'opacity-0 translate-y-8 scale-95'
+                    }`}
+                    style={{ transitionDelay: '450ms' }}>
+                    <label className='block text-sm font-medium text-foreground/90 mb-2'>
+                      Dateien anhängen (optional)
+                    </label>
+                    <div className='space-y-3'>
+                      {/* File Input */}
+                      <div className='relative'>
+                        <input
+                          type='file'
+                          id='files'
+                          multiple
+                          accept='image/*,.pdf,.txt'
+                          onChange={handleFileChange}
+                          className='hidden'
+                        />
+                        <label
+                          htmlFor='files'
+                          className='flex items-center justify-center w-full px-3 py-2.5 bg-background/50 border border-border rounded-lg text-foreground/70 hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer'>
+                          <Upload className='w-4 h-4 mr-2' />
+                          Dateien auswählen (max. 5, je 10MB)
+                        </label>
+                      </div>
+
+                      {/* File List */}
+                      {formData.files.length > 0 && (
+                        <div className='space-y-2'>
+                          {formData.files.map((file, index) => (
+                            <div
+                              key={index}
+                              className='flex items-center justify-between p-2 bg-background/30 border border-border/50 rounded-lg'>
+                              <div className='flex items-center gap-2 flex-1 min-w-0'>
+                                <FileImage className='w-4 h-4 text-primary flex-shrink-0' />
+                                <div className='min-w-0 flex-1'>
+                                  <p className='text-sm text-foreground truncate'>
+                                    {file.name}
+                                  </p>
+                                  <p className='text-xs text-foreground/60'>
+                                    {formatFileSize(file.size)}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type='button'
+                                onClick={() => removeFile(index)}
+                                className='p-1 hover:bg-red-500/20 rounded transition-colors flex-shrink-0'>
+                                <X className='w-4 h-4 text-red-400' />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {errors.files && (
+                        <p className='mt-1 text-sm text-red-400'>
+                          {errors.files}
+                        </p>
+                      )}
+
+                      <p className='text-xs text-foreground/60'>
+                        Erlaubte Formate: JPG, PNG, GIF, WebP, PDF, TXT (max.
+                        10MB pro Datei)
+                      </p>
+                    </div>
                   </div>
 
                   {/* Submit Button */}
