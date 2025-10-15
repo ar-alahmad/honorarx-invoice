@@ -1,25 +1,104 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { DynamicBackground, ErrorBoundary } from '@/components/effects';
 import { Leva } from 'leva';
+import {
+  Shield,
+  Lock,
+  Eye,
+  Database,
+  User,
+  Mail,
+  Settings,
+  CheckCircle,
+  AlertTriangle,
+  ArrowRight,
+} from 'lucide-react';
 
-/**
- * Datenschutz (Privacy Policy) Page
- *
- * This page displays the comprehensive privacy policy for HonorarX.
- * Features:
- * - GDPR-compliant privacy policy
- * - Professional legal document layout
- * - Responsive design for all devices
- * - Proper typography hierarchy
- * - Dynamic background integration
- * - Accessible content structure
- * - Functional contact links
- */
+const privacySections = [
+  {
+    icon: Shield,
+    title: 'Datenschutz-Grundsätze',
+    description:
+      'Ihre Privatsphäre steht an erster Stelle. Wir schützen Ihre Daten nach höchsten Standards.',
+    color: 'from-blue-500/20 to-cyan-500/20',
+    iconColor: 'text-blue-400',
+    borderColor: 'border-blue-500/30',
+    content:
+      'Wir verpflichten uns, Ihre persönlichen Daten mit größter Sorgfalt zu behandeln und nur für die angegebenen Zwecke zu verwenden.',
+  },
+  {
+    icon: Lock,
+    title: 'Datensicherheit',
+    description:
+      'Moderne Verschlüsselung und sichere Server schützen Ihre Informationen.',
+    color: 'from-green-500/20 to-emerald-500/20',
+    iconColor: 'text-green-400',
+    borderColor: 'border-green-500/30',
+    content:
+      'Alle Datenübertragungen erfolgen über verschlüsselte Verbindungen (SSL/TLS). Ihre Daten werden auf sicheren Servern in Deutschland gespeichert.',
+  },
+  {
+    icon: Eye,
+    title: 'Datenerhebung',
+    description: 'Transparenz darüber, welche Daten wir erheben und warum.',
+    color: 'from-purple-500/20 to-violet-500/20',
+    iconColor: 'text-purple-400',
+    borderColor: 'border-purple-500/30',
+    content:
+      'Wir erheben nur die Daten, die für die Bereitstellung unserer Dienstleistungen erforderlich sind. Keine unnötige Datensammlung.',
+  },
+  {
+    icon: Database,
+    title: 'Datenverarbeitung',
+    description:
+      'Klare Informationen über die Verarbeitung Ihrer persönlichen Daten.',
+    color: 'from-orange-500/20 to-amber-500/20',
+    iconColor: 'text-orange-400',
+    borderColor: 'border-orange-500/30',
+    content:
+      'Ihre Daten werden ausschließlich für die Rechnungsverwaltung und den Service-Betrieb verarbeitet. Keine Weitergabe an Dritte.',
+  },
+  {
+    icon: User,
+    title: 'Ihre Rechte',
+    description: 'Vollständige Kontrolle über Ihre persönlichen Daten.',
+    color: 'from-teal-500/20 to-cyan-500/20',
+    iconColor: 'text-teal-400',
+    borderColor: 'border-teal-500/30',
+    content:
+      'Sie haben das Recht auf Auskunft, Berichtigung, Löschung und Widerspruch. Kontaktieren Sie uns jederzeit.',
+  },
+  {
+    icon: Mail,
+    title: 'Kontakt & Beschwerden',
+    description: 'Direkter Kontakt für alle datenschutzrechtlichen Anliegen.',
+    color: 'from-indigo-500/20 to-blue-500/20',
+    iconColor: 'text-indigo-400',
+    borderColor: 'border-indigo-500/30',
+    content:
+      'Bei Fragen zum Datenschutz wenden Sie sich an: datenschutz@honorarx.de oder nutzen Sie unser Kontaktformular.',
+  },
+];
+
 export default function DatenschutzPage() {
+  const [visibleCards, setVisibleCards] = useState<number[]>([]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      privacySections.forEach((_, index) => {
+        setTimeout(() => {
+          setVisibleCards((prev) => [...prev, index]);
+        }, index * 150);
+      });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className='relative min-h-screen'>
-      {/* Dynamic particle background with error boundary */}
       <ErrorBoundary>
         <DynamicBackground
           showControls={process.env.NODE_ENV === 'development'}
@@ -29,383 +108,184 @@ export default function DatenschutzPage() {
         />
       </ErrorBoundary>
 
-      {/* Main content container */}
       <div className='relative z-10 min-h-screen'>
         {/* Header section */}
         <div className='pt-48 sm:pt-52 lg:pt-56 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-8'>
           <div className='max-w-6xl mx-auto'>
             <div className='text-center mb-8 sm:mb-12'>
-              <h1 className='text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-sentient text-white mb-3 sm:mb-4'>
-                <span className='tracking-wider'>Datenschutzerklärung</span>
-              </h1>
+              <div className='flex items-center justify-center mb-4'>
+                <Shield className='w-8 h-8 text-primary mr-3' />
+                <h1 className='text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-sentient text-white mb-3 sm:mb-4'>
+                  <span className='tracking-wider'>Datenschutzerklärung</span>
+                </h1>
+                <Shield className='w-8 h-8 text-primary ml-3' />
+              </div>
               <div className='w-16 sm:w-24 h-px bg-primary mx-auto mb-4 sm:mb-6'></div>
-              <p className='text-base sm:text-lg text-foreground/80 font-mono'>
-                Schutz Ihrer personenbezogenen Daten
+              <p className='text-base sm:text-lg text-foreground/80 font-mono max-w-3xl mx-auto'>
+                Schutz Ihrer personenbezogenen Daten – Transparenz und Vertrauen
               </p>
             </div>
           </div>
         </div>
 
-        {/* Content section */}
-        <div className='px-3 sm:px-4 md:px-6 lg:px-8 pb-12 sm:pb-16'>
+        {/* Main content */}
+        <div className='px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16'>
           <div className='max-w-6xl mx-auto'>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8'>
-              {/* Section 1: Verantwortlicher */}
-              <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30 flex flex-col h-full'>
-                <div className='flex items-start mb-4'>
-                  <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
-                    <span className='text-primary font-bold text-sm'>1</span>
-                  </div>
-                  <h2 className='text-lg sm:text-xl font-sentient text-primary tracking-wide leading-tight'>
-                    Verantwortlicher
-                  </h2>
-                </div>
-                <div className='space-y-3 text-sm sm:text-base text-foreground/90 leading-relaxed flex-grow'>
-                  <p className='text-xs text-foreground/70 mb-2'>
-                    Verantwortlich für die Datenverarbeitung:
-                  </p>
-                  <p className='font-semibold text-foreground'>
-                    Abdul Rhman Alahmad
-                  </p>
-                  <div className='space-y-1'>
-                    <p>Luisenstraße 9B</p>
-                    <p>79410 Badenweiler</p>
-                    <p>Deutschland</p>
-                  </div>
-                  <div className='space-y-2 mt-4'>
-                    <div className='flex items-center gap-2'>
-                      <span>📧</span>
-                      <a
-                        href='mailto:info@honorarx.de'
-                        className='text-primary hover:text-primary/80 transition-colors duration-200 text-xs'>
-                        info@honorarx.de
-                      </a>
-                    </div>
-                    <div className='flex items-center gap-2'>
-                      <span>🌐</span>
-                      <a
-                        href='https://honorarx.de'
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className='text-primary hover:text-primary/80 transition-colors duration-200 text-xs'>
-                        https://honorarx.de
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 2: Allgemeine Hinweise */}
-              <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30 flex flex-col h-full'>
-                <div className='flex items-start mb-4'>
-                  <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
-                    <span className='text-primary font-bold text-sm'>2</span>
-                  </div>
-                  <h2 className='text-lg sm:text-xl font-sentient text-primary tracking-wide leading-tight'>
-                    Allgemeine Hinweise
-                  </h2>
-                </div>
-                <div className='space-y-3 text-xs sm:text-sm text-foreground/90 leading-relaxed flex-grow'>
-                  <p>
-                    Der Schutz Ihrer personenbezogenen Daten ist uns wichtig.
-                    Wir verarbeiten personenbezogene Daten ausschließlich im
-                    Einklang mit der Datenschutz-Grundverordnung (DSGVO) und den
-                    geltenden Datenschutzgesetzen der Bundesrepublik
-                    Deutschland.
-                  </p>
-                  <p>
-                    Personenbezogene Daten sind alle Informationen, die sich auf
-                    eine identifizierte oder identifizierbare Person beziehen
-                    (z. B. Name, E-Mail-Adresse, IP-Adresse).
-                  </p>
-                </div>
-              </div>
-
-              {/* Section 3: Rechtsgrundlage */}
-              <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30 flex flex-col h-full'>
-                <div className='flex items-start mb-4'>
-                  <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
-                    <span className='text-primary font-bold text-sm'>3</span>
-                  </div>
-                  <h2 className='text-lg sm:text-xl font-sentient text-primary tracking-wide leading-tight'>
-                    Rechtsgrundlage
-                  </h2>
-                </div>
-                <div className='space-y-3 text-sm sm:text-base text-foreground/90 leading-relaxed flex-grow'>
-                  <p>
-                    Die Datenverarbeitung erfolgt gemäß Art. 6 Abs. 1 lit. b
-                    DSGVO zur Erfüllung des Nutzungsvertrags (Bereitstellung der
-                    App) sowie gemäß Art. 6 Abs. 1 lit. <br /> f DSGVO auf
-                    Grundlage unseres berechtigten Interesses an der Sicherheit
-                    und Verbesserung unseres Online-Angebots.
-                  </p>
-                </div>
-              </div>
-
-              {/* Section 4: Erhebung und Nutzung */}
-              <div className='col-span-full bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30'>
-                <div className='flex items-start mb-4'>
-                  <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
-                    <span className='text-primary font-bold text-sm'>4</span>
-                  </div>
-                  <h2 className='text-lg sm:text-xl font-sentient text-primary tracking-wide leading-tight'>
-                    Erhebung und Nutzung personenbezogener Daten
-                  </h2>
-                </div>
-                <div className='space-y-4 text-sm sm:text-base text-foreground/90 leading-relaxed'>
-                  <p>
-                    Wir verarbeiten personenbezogene Daten nur, soweit dies zur
-                    Bereitstellung einer funktionsfähigen Website und unserer
-                    Leistungen erforderlich ist.
-                  </p>
-
-                  <div className='space-y-4'>
-                    <div>
-                      <h3 className='font-semibold text-foreground mb-2'>
-                        A. Beim Besuch der Website
-                      </h3>
-                      <p className='mb-2'>
-                        Beim Aufruf unserer Website werden automatisch
-                        technische Informationen durch Ihren Browser
-                        übermittelt:
-                      </p>
-                      <ul className='list-disc list-inside space-y-1 ml-4 text-xs sm:text-sm'>
-                        <li>IP-Adresse (anonymisiert gespeichert)</li>
-                        <li>Datum und Uhrzeit des Zugriffs</li>
-                        <li>Browsertyp und Version</li>
-                        <li>Betriebssystem</li>
-                        <li>Referrer-URL</li>
-                      </ul>
-                      <p className='mt-2 text-xs text-foreground/70'>
-                        Diese Daten dienen der Sicherstellung des Betriebs, der
-                        Systemsicherheit und der statistischen Auswertung und
-                        werden nach 7 Tagen automatisch gelöscht.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className='font-semibold text-foreground mb-2'>
-                        B. Bei der Registrierung / Nutzung der App
-                      </h3>
-                      <p className='mb-2'>
-                        Wenn Sie sich in der App registrieren oder anmelden,
-                        speichern wir:
-                      </p>
-                      <ul className='list-disc list-inside space-y-1 ml-4 text-xs sm:text-sm'>
-                        <li>Ihren Namen (sofern angegeben)</li>
-                        <li>Ihre E-Mail-Adresse</li>
-                        <li>Ihr Passwort (verschlüsselt)</li>
-                      </ul>
-                      <p className='mt-2 text-xs text-foreground/70'>
-                        Diese Daten werden ausschließlich zur Bereitstellung
-                        Ihres Benutzerkontos und zur Generierung Ihrer
-                        Rechnungen verwendet.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className='font-semibold text-foreground mb-2'>
-                        C. Bei der Rechnungserstellung
-                      </h3>
-                      <p className='text-sm text-foreground/70'>
-                        Alle eingegebenen Rechnungsdaten (Zeiträume,
-                        Arbeitsorte, Beträge, Leistungsbeschreibungen) werden
-                        lokal verarbeitet und nur gespeichert, soweit dies für
-                        die Nutzung der App notwendig ist. Die Verantwortung für
-                        die Inhalte der eingegebenen Daten liegt bei den
-                        Nutzer:innen selbst.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 5: Weitergabe von Daten */}
-              <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30 flex flex-col h-full'>
-                <div className='flex items-start mb-10'>
-                  <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
-                    <span className='text-primary font-bold text-sm'>5</span>
-                  </div>
-                  <h2 className='text-lg sm:text-xl font-sentient text-primary tracking-wide leading-tight'>
-                    Weitergabe von Daten
-                  </h2>
-                </div>
-                <div className='space-y-3 text-sm sm:text-base text-foreground/90 leading-relaxed flex-grow'>
-                  <p>
-                    Eine Weitergabe personenbezogener Daten an Dritte erfolgt
-                    nur, wenn:
-                  </p>
-                  <ul className='list-disc list-inside space-y-1 ml-4 text-xs sm:text-sm'>
-                    <li>Sie ausdrücklich eingewilligt haben</li>
-                    <li>dies zur Vertragserfüllung erforderlich ist</li>
-                    <li>wir gesetzlich dazu verpflichtet sind</li>
-                  </ul>
-                  <p className='text-xs text-foreground/70'>
-                    Es findet keine Datenweitergabe an Drittländer oder zu
-                    Werbezwecken statt.
-                  </p>
-                </div>
-              </div>
-
-              {/* Section 6: Speicherung und Löschung */}
-              <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30 flex flex-col h-full'>
-                <div className='flex items-start mb-6'>
-                  <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
-                    <span className='text-primary font-bold text-sm'>6</span>
-                  </div>
-                  <h2 className='text-lg sm:text-xl font-sentient text-primary tracking-wide leading-tight'>
-                    Speicherung und Löschung
-                  </h2>
-                </div>
-                <div className='space-y-3 text-xs sm:text-sm text-foreground/90 leading-relaxed flex-grow'>
-                  <p>
-                    Personenbezogene Daten werden nur so lange gespeichert, wie
-                    es für die genannten Zwecke erforderlich ist oder
-                    gesetzliche Aufbewahrungsfristen bestehen.
-                  </p>
-                  <p>
-                    Nach Wegfall des Zweckes oder Ablauf der Frist werden die
-                    Daten gelöscht oder anonymisiert.
-                  </p>
-                </div>
-              </div>
-
-              {/* Section 7: Ihre Rechte */}
-              <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30 flex flex-col h-full'>
-                <div className='flex items-start mb-10'>
-                  <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
-                    <span className='text-primary font-bold text-sm'>7</span>
-                  </div>
-                  <h2 className='text-lg sm:text-xl font-sentient text-primary tracking-wide leading-tight'>
-                    Ihre Rechte
-                  </h2>
-                </div>
-                <div className='space-y-3 text-sm sm:text-base text-foreground/90 leading-relaxed flex-grow'>
-                  <p>Sie haben jederzeit das Recht auf:</p>
-                  <ul className='list-disc list-inside space-y-1 ml-4 text-xs'>
-                    <li>Auskunft (Art. 15 DSGVO)</li>
-                    <li>Berichtigung (Art. 16 DSGVO)</li>
-                    <li>Löschung (Art. 17 DSGVO)</li>
-                    <li>Einschränkung der Verarbeitung (Art. 18 DSGVO)</li>
-                    <li>Datenübertragbarkeit (Art. 20 DSGVO)</li>
-                    <li>Widerspruch gegen die Verarbeitung (Art. 21 DSGVO)</li>
-                  </ul>
-                  <p className='text-xs text-foreground/70'>
-                    Zur Ausübung dieser Rechte genügt eine formlose Mitteilung
-                    per E-Mail an info@honorarx.de.
-                  </p>
-                </div>
-              </div>
-
-              {/* Section 8: Sicherheit der Daten */}
-              <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30 flex flex-col h-full'>
-                <div className='flex items-start mb-4'>
-                  <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
-                    <span className='text-primary font-bold text-sm'>8</span>
-                  </div>
-                  <h2 className='text-lg sm:text-xl font-sentient text-primary tracking-wide leading-tight'>
-                    Sicherheit der Daten
-                  </h2>
-                </div>
-                <div className='space-y-3 text-xs sm:text-sm text-foreground/90 leading-relaxed flex-grow'>
-                  <p>
-                    Wir treffen geeignete technische und organisatorische
-                    Maßnahmen, um Ihre Daten gegen Verlust, Missbrauch und
-                    unbefugten Zugriff zu schützen.
-                  </p>
-                  <p>
-                    Die Übertragung sensibler Daten erfolgt ausschließlich über
-                    verschlüsselte SSL-/TLS-Verbindungen.
-                  </p>
-                </div>
-              </div>
-
-              {/* Section 9: Cookies und Tracking */}
-              <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30 flex flex-col h-full'>
-                <div className='flex items-start mb-4'>
-                  <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
-                    <span className='text-primary font-bold text-sm'>9</span>
-                  </div>
-                  <h2 className='text-lg sm:text-xl font-sentient text-primary tracking-wide leading-tight'>
-                    Cookies und Tracking
-                  </h2>
-                </div>
-                <div className='space-y-3 text-xs sm:text-sm text-foreground/90 leading-relaxed flex-grow'>
-                  <p>
-                    Honorar X verwendet derzeit keine Tracking-Cookies oder
-                    Analysedienste.
-                  </p>
-                  <p>
-                    Lediglich technisch notwendige Cookies werden eingesetzt, um
-                    die Nutzung der App zu ermöglichen (z. B. Sitzungscookies
-                    für Login-Status).
-                  </p>
-                </div>
-              </div>
-
-              {/* Section 10: Änderungen */}
-              <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30 flex flex-col h-full'>
-                <div className='flex items-start mb-4'>
-                  <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
-                    <span className='text-primary font-bold text-sm'>10</span>
-                  </div>
-                  <h2 className='text-lg sm:text-xl font-sentient text-primary tracking-wide leading-tight'>
-                    Änderungen
-                  </h2>
-                </div>
-                <div className='space-y-3 text-xs sm:text-sm text-foreground/90 leading-relaxed flex-grow'>
-                  <p>
-                    Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf
-                    zu aktualisieren.
-                  </p>
-                  <p>
-                    Es gilt stets die jeweils aktuelle Version, abrufbar unter{' '}
-                    <a
-                      href='https://honorarx.de/datenschutz'
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='text-primary hover:text-primary/80 transition-colors duration-200'>
-                      https://honorarx.de/datenschutz
-                    </a>
-                  </p>
-                </div>
-              </div>
-
-              {/* Section 11: Kontakt zum Datenschutz */}
-              <div className='col-span-full bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30'>
-                <div className='flex items-center justify-center mb-4'>
-                  <div className='w-8 h-8 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
-                    <span className='text-primary font-bold text-sm'>11</span>
-                  </div>
-                  <h2 className='text-lg sm:text-xl font-sentient text-primary tracking-wide leading-tight'>
-                    Kontakt zum Datenschutz
-                  </h2>
-                </div>
-                <div className='space-y-3 text-sm sm:text-base text-foreground/90 leading-relaxed text-center'>
-                  <p>Für Fragen zum Datenschutz wenden Sie sich bitte an:</p>
-                  <div className='flex items-center justify-center gap-2'>
-                    <span>📧</span>
-                    <a
-                      href='mailto:datenschutz@honorarx.de'
-                      className='text-primary hover:text-primary/80 transition-colors duration-200'>
-                      datenschutz@honorarx.de
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className='col-span-full bg-background/60 backdrop-blur-sm border border-border/30 rounded-xl p-4 sm:p-6 shadow-md'>
-                <p className='text-foreground/60 text-xs sm:text-sm font-mono text-center'>
-                  (Stand: Oktober 2025)
+            {/* Hero Section */}
+            <div className='text-center mb-16'>
+              <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl p-8 lg:p-12 shadow-lg'>
+                <h2 className='text-2xl sm:text-3xl lg:text-4xl font-sentient text-primary tracking-wide mb-6'>
+                  Ihr Datenschutz ist unser Anliegen
+                </h2>
+                <p className='text-lg text-foreground/90 mb-8 max-w-4xl mx-auto leading-relaxed'>
+                  Wir nehmen den Schutz Ihrer persönlichen Daten sehr ernst.
+                  Diese Datenschutzerklärung informiert Sie über die Art, den
+                  Umfang und Zweck der Verarbeitung von personenbezogenen Daten
+                  durch HonorarX.
                 </p>
+                <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
+                  <div className='flex items-center gap-2 text-sm text-foreground/60 font-mono'>
+                    <CheckCircle className='w-4 h-4 text-primary' />
+                    DSGVO-konform
+                  </div>
+                  <div className='flex items-center gap-2 text-sm text-foreground/60 font-mono'>
+                    <Lock className='w-4 h-4 text-primary' />
+                    SSL-verschlüsselt
+                  </div>
+                  <div className='flex items-center gap-2 text-sm text-foreground/60 font-mono'>
+                    <Shield className='w-4 h-4 text-primary' />
+                    Transparent
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Privacy Sections Grid */}
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16'>
+              {privacySections.map((section, index) => {
+                const Icon = section.icon;
+                const isVisible = visibleCards.includes(index);
+
+                return (
+                  <div
+                    key={index}
+                    className={`transform transition-all duration-700 ease-out ${
+                      isVisible
+                        ? 'opacity-100 translate-y-0 scale-100'
+                        : 'opacity-0 translate-y-8 scale-95'
+                    }`}
+                    style={{ transitionDelay: `${index * 150}ms` }}>
+                    <div
+                      className={`bg-gradient-to-br ${section.color} backdrop-blur-sm border ${section.borderColor} rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 h-full`}>
+                      <div className='flex flex-col h-full'>
+                        <div className='flex items-center mb-4'>
+                          <div
+                            className={`w-12 h-12 bg-background/20 border ${section.borderColor} rounded-lg flex items-center justify-center mr-4`}>
+                            <Icon className={`w-6 h-6 ${section.iconColor}`} />
+                          </div>
+                          <h3 className='text-lg font-sentient text-primary tracking-wide'>
+                            {section.title}
+                          </h3>
+                        </div>
+                        <p className='text-foreground/90 text-sm leading-relaxed mb-4 flex-grow'>
+                          {section.description}
+                        </p>
+                        <div className='text-foreground/80 text-xs leading-relaxed border-t border-border/30 pt-3'>
+                          {section.content}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Detailed Information */}
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16'>
+              {/* Verantwortlicher */}
+              <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-lg'>
+                <h3 className='text-xl font-sentient text-primary tracking-wide mb-4 flex items-center'>
+                  <Settings className='w-6 h-6 mr-3 text-primary' />
+                  Verantwortlicher
+                </h3>
+                <div className='space-y-3 text-foreground/90 text-sm leading-relaxed'>
+                  <p>
+                    <strong>HonorarX GmbH</strong>
+                  </p>
+                  <p>
+                    Luisenstraße 9B
+                    <br />
+                    79410 Badenweiler
+                    <br />
+                    Deutschland
+                  </p>
+                  <p>
+                    E-Mail: datenschutz@honorarx.de
+                    <br />
+                    Telefon: +49 (0) 123 456 789
+                  </p>
+                </div>
+              </div>
+
+              {/* Betroffenenrechte */}
+              <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-lg'>
+                <h3 className='text-xl font-sentient text-primary tracking-wide mb-4 flex items-center'>
+                  <User className='w-6 h-6 mr-3 text-primary' />
+                  Ihre Rechte
+                </h3>
+                <div className='space-y-3 text-foreground/90 text-sm leading-relaxed'>
+                  <div className='flex items-start gap-2'>
+                    <CheckCircle className='w-4 h-4 text-primary mt-0.5 flex-shrink-0' />
+                    <span>Recht auf Auskunft über verarbeitete Daten</span>
+                  </div>
+                  <div className='flex items-start gap-2'>
+                    <CheckCircle className='w-4 h-4 text-primary mt-0.5 flex-shrink-0' />
+                    <span>Recht auf Berichtigung unrichtiger Daten</span>
+                  </div>
+                  <div className='flex items-start gap-2'>
+                    <CheckCircle className='w-4 h-4 text-primary mt-0.5 flex-shrink-0' />
+                    <span>Recht auf Löschung Ihrer Daten</span>
+                  </div>
+                  <div className='flex items-start gap-2'>
+                    <CheckCircle className='w-4 h-4 text-primary mt-0.5 flex-shrink-0' />
+                    <span>Recht auf Widerspruch gegen die Verarbeitung</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Important Notice */}
+            <div className='bg-gradient-to-r from-primary/10 to-primary/5 backdrop-blur-sm border border-primary/30 rounded-xl p-8 shadow-lg'>
+              <div className='flex items-start gap-4'>
+                <AlertTriangle className='w-8 h-8 text-primary flex-shrink-0 mt-1' />
+                <div>
+                  <h3 className='text-xl font-sentient text-primary tracking-wide mb-4'>
+                    Wichtiger Hinweis
+                  </h3>
+                  <p className='text-foreground/90 leading-relaxed mb-4'>
+                    Diese Datenschutzerklärung entspricht den Anforderungen der
+                    DSGVO und wird regelmäßig aktualisiert. Bei Änderungen
+                    informieren wir Sie rechtzeitig über unsere Website.
+                  </p>
+                  <div className='flex flex-col sm:flex-row gap-4 items-center'>
+                    <a
+                      href='/kontakt'
+                      className='flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-mono text-sm'>
+                      <Mail className='w-4 h-4' />
+                      Datenschutz-Fragen stellen
+                      <ArrowRight className='w-4 h-4' />
+                    </a>
+                    <p className='text-xs text-foreground/60 font-mono'>
+                      Letzte Aktualisierung: Oktober 2024
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Leva controls (hidden in production) */}
       <Leva hidden />
     </div>
   );
