@@ -4,25 +4,31 @@ import {
   FileText,
   Info,
   LogIn,
+  UserPlus,
   Plus,
   List,
   Building2,
   Mail,
   Shield,
   FileCheck,
+  Settings,
+  LogOut,
 } from 'lucide-react';
 import { DropdownNavBar } from '@/components/ui/dropdown-navbar';
 
 /**
  * NavBarDemo - Professional navigation component for HonorarX Invoice
- * Features dropdown menus for organized navigation:
+ * Features clean dropdown menus for organized navigation:
  * - HOME: Dashboard/Overview
  * - RECHNUNG: Invoice management with dropdown (Create, List)
- * - PROFILE: User profile page (direct link)
- * - ANMELDEN: Login page (direct link)
  * - INFO: Company information with dropdown (About, Contact, Legal)
+ * - USER: User account with authentication-aware dropdown
  */
 export function NavBarDemo() {
+  // TODO: Replace with actual authentication state
+  const isLoggedIn = false; // This will be dynamic later
+  const userFamilyName = 'MÜLLER'; // This will be dynamic later
+
   const navItems = [
     {
       name: 'HOME',
@@ -45,16 +51,6 @@ export function NavBarDemo() {
           icon: List,
         },
       ],
-    },
-    {
-      name: 'PROFILE',
-      url: '/profil',
-      icon: User,
-    },
-    {
-      name: 'ANMELDEN',
-      url: '/anmelden',
-      icon: LogIn,
     },
     {
       name: 'INFO',
@@ -87,6 +83,41 @@ export function NavBarDemo() {
           icon: FileCheck,
         },
       ],
+    },
+    {
+      name: isLoggedIn ? userFamilyName : 'USER',
+      url: '#',
+      icon: User,
+      dropdown: isLoggedIn
+        ? [
+            {
+              name: 'Profil',
+              url: '/profil',
+              icon: User,
+            },
+            {
+              name: 'Einstellungen',
+              url: '/einstellungen',
+              icon: Settings,
+            },
+            {
+              name: 'Abmelden',
+              url: '#',
+              icon: LogOut,
+            },
+          ]
+        : [
+            {
+              name: 'Anmelden',
+              url: '/anmelden',
+              icon: LogIn,
+            },
+            {
+              name: 'Registrieren',
+              url: '/registrieren',
+              icon: UserPlus,
+            },
+          ],
     },
   ];
 

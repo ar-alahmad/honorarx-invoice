@@ -41,6 +41,9 @@ export function DropdownNavBar({ items, className }: DropdownNavBarProps) {
   const [clickOpenedDropdown, setClickOpenedDropdown] = useState<string | null>(
     null
   );
+  const [activeDropdownItem, setActiveDropdownItem] = useState<string | null>(
+    null
+  );
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Close dropdown when clicking outside
@@ -65,6 +68,7 @@ export function DropdownNavBar({ items, className }: DropdownNavBarProps) {
     } else {
       setActiveDropdown(itemName);
       setClickOpenedDropdown(itemName);
+      setActiveDropdownItem(null);
     }
   };
 
@@ -72,6 +76,7 @@ export function DropdownNavBar({ items, className }: DropdownNavBarProps) {
     setActiveTab(itemName);
     setActiveDropdown(null);
     setClickOpenedDropdown(null);
+    setActiveDropdownItem(null);
   };
 
   const dropdownVariants = {
@@ -101,7 +106,7 @@ export function DropdownNavBar({ items, className }: DropdownNavBarProps) {
         'fixed top-4 left-1/2 -translate-x-1/2 z-50 pt-6',
         className
       )}>
-      <div className='flex items-center gap-3 bg-background/5 border border-border backdrop-blur-lg py-1 px-1 rounded-full shadow-lg'>
+      <div className='flex items-center gap-2 bg-background/5 border border-border backdrop-blur-lg py-1 px-1 rounded-full shadow-lg'>
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.name;
@@ -219,6 +224,8 @@ export function DropdownNavBar({ items, className }: DropdownNavBarProps) {
                       {/* Dropdown Items */}
                       <div className='py-2'>
                         {item.dropdown?.map((dropdownItem) => {
+                          const isActiveDropdownItem =
+                            activeDropdownItem === dropdownItem.name;
                           return (
                             <Link
                               key={dropdownItem.name}
@@ -227,8 +234,14 @@ export function DropdownNavBar({ items, className }: DropdownNavBarProps) {
                                 setActiveTab(item.name);
                                 setActiveDropdown(null);
                                 setClickOpenedDropdown(null);
+                                setActiveDropdownItem(dropdownItem.name);
                               }}
-                              className='flex items-center px-4 py-3 text-sm text-foreground/80 hover:bg-muted/50 hover:text-primary transition-colors group'>
+                              className={cn(
+                                'flex items-center px-4 py-2 text-sm transition-colors group relative',
+                                isActiveDropdownItem
+                                  ? 'bg-primary/10 text-primary border-r-2 border-primary'
+                                  : 'text-foreground/80 hover:bg-muted/50 hover:text-primary'
+                              )}>
                               <span className='flex-1'>
                                 {dropdownItem.name}
                               </span>
