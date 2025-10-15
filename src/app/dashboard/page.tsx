@@ -84,14 +84,11 @@ export default function DashboardPage() {
               <h1 className='text-4xl font-bold text-white mb-2'>
                 Willkommen, {user.firstName}!
               </h1>
-              <p className='text-white/70'>
-                Ihr HonorarX Dashboard
-              </p>
+              <p className='text-white/70'>Ihr HonorarX Dashboard</p>
             </div>
             <Button
               onClick={handleSignOut}
-              className='bg-red-600 hover:bg-red-700 text-white'
-            >
+              className='bg-red-600 hover:bg-red-700 text-white'>
               Abmelden
             </Button>
           </div>
@@ -100,7 +97,9 @@ export default function DashboardPage() {
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
             {/* User Info Card */}
             <div className='bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20'>
-              <h3 className='text-xl font-semibold text-white mb-4'>Profil-Informationen</h3>
+              <h3 className='text-xl font-semibold text-white mb-4'>
+                Profil-Informationen
+              </h3>
               <div className='space-y-3'>
                 <div>
                   <p className='text-white/70 text-sm'>Name</p>
@@ -120,7 +119,12 @@ export default function DashboardPage() {
                 )}
                 <div>
                   <p className='text-white/70 text-sm'>E-Mail verifiziert</p>
-                  <p className={`font-medium ${user.isEmailVerified ? 'text-green-400' : 'text-yellow-400'}`}>
+                  <p
+                    className={`font-medium ${
+                      user.isEmailVerified
+                        ? 'text-green-400'
+                        : 'text-yellow-400'
+                    }`}>
                     {user.isEmailVerified ? 'Ja' : 'Nein'}
                   </p>
                 </div>
@@ -129,24 +133,23 @@ export default function DashboardPage() {
 
             {/* Quick Actions Card */}
             <div className='bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20'>
-              <h3 className='text-xl font-semibold text-white mb-4'>Schnellaktionen</h3>
+              <h3 className='text-xl font-semibold text-white mb-4'>
+                Schnellaktionen
+              </h3>
               <div className='space-y-3'>
                 <Button
                   onClick={() => router.push('/rechnung-erstellen')}
-                  className='w-full bg-blue-600 hover:bg-blue-700 text-white'
-                >
+                  className='w-full bg-blue-600 hover:bg-blue-700 text-white'>
                   Neue Rechnung erstellen
                 </Button>
                 <Button
                   onClick={() => router.push('/rechnungen')}
-                  className='w-full bg-green-600 hover:bg-green-700 text-white'
-                >
+                  className='w-full bg-green-600 hover:bg-green-700 text-white'>
                   Alle Rechnungen anzeigen
                 </Button>
                 <Button
                   onClick={() => router.push('/profil')}
-                  className='w-full bg-purple-600 hover:bg-purple-700 text-white'
-                >
+                  className='w-full bg-purple-600 hover:bg-purple-700 text-white'>
                   Profil bearbeiten
                 </Button>
               </div>
@@ -154,7 +157,9 @@ export default function DashboardPage() {
 
             {/* Statistics Card */}
             <div className='bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20'>
-              <h3 className='text-xl font-semibold text-white mb-4'>Statistiken</h3>
+              <h3 className='text-xl font-semibold text-white mb-4'>
+                Statistiken
+              </h3>
               <div className='space-y-3'>
                 <div className='flex justify-between'>
                   <span className='text-white/70'>Gesamte Rechnungen</span>
@@ -178,7 +183,9 @@ export default function DashboardPage() {
 
           {/* Recent Activity */}
           <div className='bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20'>
-            <h3 className='text-xl font-semibold text-white mb-4'>Letzte Aktivitäten</h3>
+            <h3 className='text-xl font-semibold text-white mb-4'>
+              Letzte Aktivitäten
+            </h3>
             <div className='text-center py-8'>
               <p className='text-white/70'>Noch keine Aktivitäten vorhanden</p>
               <p className='text-white/50 text-sm mt-2'>

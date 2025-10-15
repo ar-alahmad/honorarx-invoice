@@ -9,17 +9,19 @@ import { DynamicBackground, ErrorBoundary } from '@/components/effects';
 import { Button } from '@/components/ui/button';
 import { Leva } from 'leva';
 
-const registerSchema = z.object({
-  email: z.string().email('Ungültige E-Mail-Adresse'),
-  password: z.string().min(8, 'Passwort muss mindestens 8 Zeichen lang sein'),
-  confirmPassword: z.string(),
-  firstName: z.string().min(1, 'Vorname ist erforderlich'),
-  lastName: z.string().min(1, 'Nachname ist erforderlich'),
-  company: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwörter stimmen nicht überein",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    email: z.string().email('Ungültige E-Mail-Adresse'),
+    password: z.string().min(8, 'Passwort muss mindestens 8 Zeichen lang sein'),
+    confirmPassword: z.string(),
+    firstName: z.string().min(1, 'Vorname ist erforderlich'),
+    lastName: z.string().min(1, 'Nachname ist erforderlich'),
+    company: z.string().optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwörter stimmen nicht überein',
+    path: ['confirmPassword'],
+  });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -62,9 +64,13 @@ export default function RegistrierenPage() {
       }
 
       // Redirect to login page with success message
-      router.push('/anmelden?message=Registrierung erfolgreich! Bitte melden Sie sich an.');
+      router.push(
+        '/anmelden?message=Registrierung erfolgreich! Bitte melden Sie sich an.'
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+      setError(
+        err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +86,9 @@ export default function RegistrierenPage() {
         <div className='w-full max-w-md'>
           <div className='bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20'>
             <div className='text-center mb-8'>
-              <h1 className='text-3xl font-bold text-white mb-2'>Registrieren</h1>
+              <h1 className='text-3xl font-bold text-white mb-2'>
+                Registrieren
+              </h1>
               <p className='text-white/70'>Erstellen Sie Ihr HonorarX Konto</p>
             </div>
 
@@ -103,7 +111,9 @@ export default function RegistrierenPage() {
                     placeholder='Max'
                   />
                   {errors.firstName && (
-                    <p className='text-red-400 text-sm mt-1'>{errors.firstName.message}</p>
+                    <p className='text-red-400 text-sm mt-1'>
+                      {errors.firstName.message}
+                    </p>
                   )}
                 </div>
 
@@ -118,7 +128,9 @@ export default function RegistrierenPage() {
                     placeholder='Mustermann'
                   />
                   {errors.lastName && (
-                    <p className='text-red-400 text-sm mt-1'>{errors.lastName.message}</p>
+                    <p className='text-red-400 text-sm mt-1'>
+                      {errors.lastName.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -134,7 +146,9 @@ export default function RegistrierenPage() {
                   placeholder='max@beispiel.de'
                 />
                 {errors.email && (
-                  <p className='text-red-400 text-sm mt-1'>{errors.email.message}</p>
+                  <p className='text-red-400 text-sm mt-1'>
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 
@@ -161,7 +175,9 @@ export default function RegistrierenPage() {
                   placeholder='Mindestens 8 Zeichen'
                 />
                 {errors.password && (
-                  <p className='text-red-400 text-sm mt-1'>{errors.password.message}</p>
+                  <p className='text-red-400 text-sm mt-1'>
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
 
@@ -176,15 +192,16 @@ export default function RegistrierenPage() {
                   placeholder='Passwort wiederholen'
                 />
                 {errors.confirmPassword && (
-                  <p className='text-red-400 text-sm mt-1'>{errors.confirmPassword.message}</p>
+                  <p className='text-red-400 text-sm mt-1'>
+                    {errors.confirmPassword.message}
+                  </p>
                 )}
               </div>
 
               <Button
                 type='submit'
                 disabled={isLoading}
-                className='w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-              >
+                className='w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
                 {isLoading ? 'Registrierung läuft...' : 'Konto erstellen'}
               </Button>
             </form>
@@ -194,8 +211,7 @@ export default function RegistrierenPage() {
                 Bereits ein Konto?{' '}
                 <a
                   href='/anmelden'
-                  className='text-blue-400 hover:text-blue-300 font-medium'
-                >
+                  className='text-blue-400 hover:text-blue-300 font-medium'>
                   Hier anmelden
                 </a>
               </p>
