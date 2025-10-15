@@ -132,7 +132,7 @@ function LoginForm() {
               </span>
             </label>
             <a
-              href='/passwort-zuruecksetzen'
+              href='/forgot-password'
               className='text-blue-400 hover:text-blue-300 text-sm'>
               Passwort vergessen?
             </a>
