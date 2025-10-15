@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { px } from '../utils';
+import { px } from '@/lib/utils';
 
 /**
  * Pill component with polygonal styling and corner borders

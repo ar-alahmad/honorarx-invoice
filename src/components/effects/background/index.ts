@@ -11,7 +11,7 @@
  *
  * Usage:
  * ```tsx
- * import { DynamicBackground } from '@/components/background';
+ * import { DynamicBackground } from '@/components/effects';
  *
  * <DynamicBackground
  *   hovering={isHovering}
