@@ -22,6 +22,8 @@ interface NavItem {
 interface DropdownNavBarProps {
   items: NavItem[];
   className?: string;
+  isLoggedIn?: boolean;
+  userFamilyName?: string;
 }
 
 /**
@@ -34,7 +36,12 @@ interface DropdownNavBarProps {
  * - Active state management
  * - Professional dropdown styling
  */
-export function DropdownNavBar({ items, className }: DropdownNavBarProps) {
+export function DropdownNavBar({
+  items,
+  className,
+  isLoggedIn = false,
+  userFamilyName = '',
+}: DropdownNavBarProps) {
   const [activeTab, setActiveTab] = useState(items[0].name);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [hoveredDropdown, setHoveredDropdown] = useState<string | null>(null);
@@ -140,7 +147,13 @@ export function DropdownNavBar({ items, className }: DropdownNavBarProps) {
                   )}>
                   <span className='hidden md:inline'>{item.name}</span>
                   <span className='md:hidden'>
-                    <Icon size={18} strokeWidth={2.5} />
+                    {item.name === 'USER' && isLoggedIn ? (
+                      <span className='w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold'>
+                        {userFamilyName.charAt(0)}
+                      </span>
+                    ) : (
+                      <Icon size={18} strokeWidth={2.5} />
+                    )}
                   </span>
 
                   {/* Dropdown Arrow */}
@@ -182,7 +195,13 @@ export function DropdownNavBar({ items, className }: DropdownNavBarProps) {
                   )}>
                   <span className='hidden md:inline'>{item.name}</span>
                   <span className='md:hidden'>
-                    <Icon size={18} strokeWidth={2.5} />
+                    {item.name === 'USER' && isLoggedIn ? (
+                      <span className='w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold'>
+                        {userFamilyName.charAt(0)}
+                      </span>
+                    ) : (
+                      <Icon size={18} strokeWidth={2.5} />
+                    )}
                   </span>
 
                   {/* Active State Indicator */}

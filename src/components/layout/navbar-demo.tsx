@@ -121,5 +121,11 @@ export function NavBarDemo() {
     },
   ];
 
-  return <DropdownNavBar items={navItems} />;
+  return (
+    <DropdownNavBar
+      items={navItems}
+      isLoggedIn={isLoggedIn}
+      userFamilyName={userFamilyName}
+    />
+  );
 }
