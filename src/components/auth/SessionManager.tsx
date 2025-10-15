@@ -55,11 +55,14 @@ export function SessionManager() {
     // Function to start inactivity timer
     const startInactivityTimer = () => {
       clearInactivityTimer();
-      inactivityTimer.current = setTimeout(() => {
-        if (session && !rememberMe) {
-          signOut({ redirect: true });
-        }
-      }, 30 * 60 * 1000); // 30 minutes of inactivity
+      inactivityTimer.current = setTimeout(
+        () => {
+          if (session && !rememberMe) {
+            signOut({ redirect: true });
+          }
+        },
+        30 * 60 * 1000
+      ); // 30 minutes of inactivity
     };
 
     // Function to clear inactivity timer
@@ -105,7 +108,7 @@ export function SessionManager() {
     const checkSessionExpiry = () => {
       const now = Date.now();
       const sessionStart = session.user ? Date.now() : 0; // This is a simplified check
-      
+
       // If session is older than maxAge, sign out
       if (now - sessionStart > maxAge) {
         signOut({ redirect: true });

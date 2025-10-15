@@ -46,7 +46,9 @@ function EmailVerificationForm() {
         setMessage('E-Mail-Adresse erfolgreich bestätigt!');
         setIsVerified(true);
         setTimeout(() => {
-          router.push('/anmelden?message=E-Mail-Adresse erfolgreich bestätigt. Sie können sich jetzt anmelden.');
+          router.push(
+            '/anmelden?message=E-Mail-Adresse erfolgreich bestätigt. Sie können sich jetzt anmelden.'
+          );
         }, 2000);
       } else {
         setError(data.error || 'Fehler bei der E-Mail-Bestätigung');
@@ -80,7 +82,9 @@ function EmailVerificationForm() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage('Neuer Verifizierungscode wurde an Ihre E-Mail-Adresse gesendet.');
+        setMessage(
+          'Neuer Verifizierungscode wurde an Ihre E-Mail-Adresse gesendet.'
+        );
       } else {
         setError(data.error || 'Fehler beim Senden des Codes');
       }
@@ -101,9 +105,12 @@ function EmailVerificationForm() {
         <div className='relative z-10 min-h-screen flex flex-col items-center justify-center p-4'>
           <div className='bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20 text-center max-w-md w-full'>
             <CheckCircle className='w-16 h-16 text-green-400 mx-auto mb-4' />
-            <h1 className='text-3xl font-bold text-white mb-6'>E-Mail bestätigt!</h1>
+            <h1 className='text-3xl font-bold text-white mb-6'>
+              E-Mail bestätigt!
+            </h1>
             <p className='text-white/70 mb-6'>
-              Ihre E-Mail-Adresse wurde erfolgreich bestätigt. Sie werden zur Anmeldeseite weitergeleitet...
+              Ihre E-Mail-Adresse wurde erfolgreich bestätigt. Sie werden zur
+              Anmeldeseite weitergeleitet...
             </p>
             <div className='w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto'></div>
           </div>
@@ -123,11 +130,14 @@ function EmailVerificationForm() {
       <div className='relative z-10 min-h-screen flex flex-col items-center justify-center p-4'>
         <div className='bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20 text-center max-w-md w-full'>
           <Mail className='w-16 h-16 text-blue-400 mx-auto mb-4' />
-          <h1 className='text-3xl font-bold text-white mb-6'>E-Mail bestätigen</h1>
-          
+          <h1 className='text-3xl font-bold text-white mb-6'>
+            E-Mail bestätigen
+          </h1>
+
           <p className='text-white/70 text-sm mb-6'>
-            Wir haben einen 6-stelligen Verifizierungscode an Ihre E-Mail-Adresse gesendet. 
-            Geben Sie den Code unten ein, um Ihr Konto zu aktivieren.
+            Wir haben einen 6-stelligen Verifizierungscode an Ihre
+            E-Mail-Adresse gesendet. Geben Sie den Code unten ein, um Ihr Konto
+            zu aktivieren.
           </p>
 
           {message && (
@@ -146,7 +156,9 @@ function EmailVerificationForm() {
 
           <form onSubmit={handleVerifyEmail} className='space-y-4'>
             <div>
-              <label htmlFor='email' className='block text-white/80 text-sm font-medium mb-2'>
+              <label
+                htmlFor='email'
+                className='block text-white/80 text-sm font-medium mb-2'>
                 E-Mail-Adresse
               </label>
               <input
@@ -161,14 +173,18 @@ function EmailVerificationForm() {
             </div>
 
             <div>
-              <label htmlFor='code' className='block text-white/80 text-sm font-medium mb-2'>
+              <label
+                htmlFor='code'
+                className='block text-white/80 text-sm font-medium mb-2'>
                 Verifizierungscode
               </label>
               <input
                 type='text'
                 id='code'
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={(e) =>
+                  setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
+                }
                 required
                 maxLength={6}
                 className='w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent text-center text-2xl font-mono tracking-widest'
@@ -179,8 +195,7 @@ function EmailVerificationForm() {
             <Button
               type='submit'
               disabled={isLoading || code.length !== 6}
-              className='w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-            >
+              className='w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
               {isLoading ? 'Wird bestätigt...' : 'E-Mail bestätigen'}
             </Button>
           </form>
@@ -189,8 +204,7 @@ function EmailVerificationForm() {
             <button
               onClick={handleResendCode}
               disabled={isResending || !email}
-              className='w-full py-2 text-blue-400 hover:text-blue-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
-            >
+              className='w-full py-2 text-blue-400 hover:text-blue-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'>
               {isResending ? (
                 <>
                   <RefreshCw className='w-4 h-4 animate-spin' />
@@ -203,8 +217,7 @@ function EmailVerificationForm() {
 
             <button
               onClick={() => router.push('/anmelden')}
-              className='w-full py-2 text-white/60 hover:text-white/80 text-sm'
-            >
+              className='w-full py-2 text-white/60 hover:text-white/80 text-sm'>
               Zurück zur Anmeldung
             </button>
           </div>
@@ -218,11 +231,12 @@ function EmailVerificationForm() {
 
 export default function EmailVerificationPage() {
   return (
-    <Suspense fallback={
-      <div className='relative min-h-screen flex items-center justify-center'>
-        <div className='w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin'></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className='relative min-h-screen flex items-center justify-center'>
+          <div className='w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin'></div>
+        </div>
+      }>
       <EmailVerificationForm />
     </Suspense>
   );

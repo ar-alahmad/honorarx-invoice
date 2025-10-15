@@ -255,8 +255,6 @@ export default function KontaktPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-
-
   if (isSubmitted) {
     return (
       <div className='relative min-h-screen'>
@@ -630,24 +628,23 @@ export default function KontaktPage() {
                         </>
                       )}
                     </Button>
-                    
+
                     {status !== 'authenticated' && (
                       <div className='mt-3 p-3 bg-amber-500/20 border border-amber-500/50 rounded-lg'>
                         <p className='text-amber-200 text-sm text-center'>
                           <Shield className='w-4 h-4 inline mr-2' />
-                          Um Nachrichten mit Dateianhängen zu senden, müssen Sie sich anmelden.
+                          Um Nachrichten mit Dateianhängen zu senden, müssen Sie
+                          sich anmelden.
                           <br />
-                          <a 
-                            href='/anmelden' 
-                            className='text-amber-300 hover:text-amber-200 underline font-medium'
-                          >
+                          <a
+                            href='/anmelden'
+                            className='text-amber-300 hover:text-amber-200 underline font-medium'>
                             Hier anmelden
-                          </a>
-                          {' '}oder{' '}
-                          <a 
-                            href='/registrieren' 
-                            className='text-amber-300 hover:text-amber-200 underline font-medium'
-                          >
+                          </a>{' '}
+                          oder{' '}
+                          <a
+                            href='/registrieren'
+                            className='text-amber-300 hover:text-amber-200 underline font-medium'>
                             registrieren
                           </a>
                         </p>

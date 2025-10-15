@@ -53,13 +53,16 @@ export async function POST(request: NextRequest) {
 
     // Send verification email
     try {
-      const verificationResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/verify-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: user.email }),
-      });
+      const verificationResponse = await fetch(
+        `${process.env.NEXTAUTH_URL}/api/auth/verify-email`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: user.email }),
+        }
+      );
 
       if (!verificationResponse.ok) {
         console.error('Failed to send verification email');

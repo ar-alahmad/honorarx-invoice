@@ -16,15 +16,15 @@ const contactSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    
+
     // Check if user is authenticated
     const session = await auth();
-    
+
     // Check if there are file uploads
     const fileEntries = Array.from(formData.entries()).filter(([key]) =>
       key.startsWith('file_')
     );
-    
+
     // Require authentication only for file uploads
     if (fileEntries.length > 0 && !session?.user) {
       return NextResponse.json(
@@ -115,13 +115,17 @@ export async function POST(request: NextRequest) {
                   <p style="margin: 8px 0; color: #333333;"><strong>Name:</strong> ${validatedData.name}</p>
                   <p style="margin: 8px 0; color: #333333;"><strong>E-Mail:</strong> <a href="mailto:${validatedData.email}" style="color: #007bff; text-decoration: none;">${validatedData.email}</a></p>
                   <p style="margin: 8px 0; color: #333333;"><strong>Betreff:</strong> ${validatedData.subject}</p>
-                  ${session?.user ? `
+                  ${
+                    session?.user
+                      ? `
                     <p style="margin: 8px 0; color: #333333;"><strong>Benutzer-ID:</strong> ${session.user.id}</p>
                     <p style="margin: 8px 0; color: #333333;"><strong>Authentifiziert:</strong> Ja (angemeldeter Benutzer)</p>
-                  ` : `
+                  `
+                      : `
                     <p style="margin: 8px 0; color: #ff6b35;"><strong>Authentifiziert:</strong> Nein (anonymer Benutzer)</p>
                     <p style="margin: 8px 0; color: #666666; font-size: 12px;"><em>Hinweis: Dateianhänge sind nur für angemeldete Benutzer verfügbar.</em></p>
-                  `}
+                  `
+                  }
                 </div>
                 
                 <div style="background-color: #ffffff; padding: 20px; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 20px;">

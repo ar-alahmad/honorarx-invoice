@@ -57,7 +57,9 @@ function LoginForm() {
 
       if (result?.error) {
         if (result.error === 'EMAIL_NOT_VERIFIED') {
-          setError('Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse. Prüfen Sie Ihr E-Mail-Postfach.');
+          setError(
+            'Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse. Prüfen Sie Ihr E-Mail-Postfach.'
+          );
         } else {
           setError('Ungültige Anmeldedaten');
         }

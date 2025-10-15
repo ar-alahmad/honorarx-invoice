@@ -12,7 +12,10 @@ const verifyEmailSchema = z.object({
 
 const confirmVerificationSchema = z.object({
   email: z.string().email('Invalid email address'),
-  code: z.string().min(6, 'Verification code must be 6 digits').max(6, 'Verification code must be 6 digits'),
+  code: z
+    .string()
+    .min(6, 'Verification code must be 6 digits')
+    .max(6, 'Verification code must be 6 digits'),
 });
 
 // Send verification email
@@ -26,10 +29,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     if (user.isEmailVerified) {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     // Generate 6-digit verification code
     const verificationCode = crypto.randomInt(100000, 999999).toString();
-    
+
     // Store verification code in dedicated fields
     const verificationExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
@@ -156,10 +156,7 @@ export async function PUT(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     if (user.isEmailVerified) {
@@ -170,7 +167,11 @@ export async function PUT(request: NextRequest) {
     }
 
     // Check if verification code matches and is not expired
-    if (user.emailVerificationCode !== code || !user.emailVerificationExpiry || user.emailVerificationExpiry < new Date()) {
+    if (
+      user.emailVerificationCode !== code ||
+      !user.emailVerificationExpiry ||
+      user.emailVerificationExpiry < new Date()
+    ) {
       return NextResponse.json(
         { error: 'Invalid or expired verification code' },
         { status: 400 }
