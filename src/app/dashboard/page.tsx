@@ -227,7 +227,7 @@ export default function DashboardPage() {
       </ErrorBoundary>
 
       <div className='relative z-10 min-h-screen p-4 sm:p-6 lg:p-8'>
-        <div className='max-w-7xl mx-auto pt-4 sm:pt-6 lg:pt-8'>
+        <div className='max-w-7xl mx-auto pt-20 sm:pt-24 lg:pt-28'>
           {/* Header Section */}
           <div className='flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 sm:mb-10 lg:mb-12 gap-6'>
             <div className='flex items-center gap-4 sm:gap-6'>
@@ -392,7 +392,9 @@ export default function DashboardPage() {
                       onClick={() => router.push('/rechnung-erstellen')}
                       className='w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white h-12 sm:h-14 text-base sm:text-lg font-medium shadow-lg shadow-blue-600/25'>
                       <Plus className='h-4 w-4 sm:h-5 sm:w-5' />
-                      <span className='hidden sm:inline'>Neue Rechnung erstellen</span>
+                      <span className='hidden sm:inline'>
+                        Neue Rechnung erstellen
+                      </span>
                       <span className='sm:hidden'>Neue Rechnung</span>
                     </Button>
                     <Button
@@ -400,7 +402,9 @@ export default function DashboardPage() {
                       variant='outline'
                       className='w-full h-12 sm:h-14 text-base sm:text-lg font-medium'>
                       <Eye className='h-4 w-4 sm:h-5 sm:w-5' />
-                      <span className='hidden sm:inline'>Alle Rechnungen anzeigen</span>
+                      <span className='hidden sm:inline'>
+                        Alle Rechnungen anzeigen
+                      </span>
                       <span className='sm:hidden'>Rechnungen</span>
                     </Button>
                     <Button
@@ -408,7 +412,9 @@ export default function DashboardPage() {
                       variant='outline'
                       className='w-full h-12 sm:h-14 text-base sm:text-lg font-medium'>
                       <Settings className='h-4 w-4 sm:h-5 sm:w-5' />
-                      <span className='hidden sm:inline'>Profil bearbeiten</span>
+                      <span className='hidden sm:inline'>
+                        Profil bearbeiten
+                      </span>
                       <span className='sm:hidden'>Profil</span>
                     </Button>
                   </div>
@@ -433,7 +439,9 @@ export default function DashboardPage() {
                         <p className='text-white font-medium text-sm sm:text-base truncate'>
                           Rechnung #INV-2024-001 bezahlt
                         </p>
-                        <p className='text-white/50 text-xs sm:text-sm'>Vor 2 Stunden</p>
+                        <p className='text-white/50 text-xs sm:text-sm'>
+                          Vor 2 Stunden
+                        </p>
                       </div>
                       <span className='text-green-400 font-semibold text-sm sm:text-base flex-shrink-0'>
                         €1,200.00
@@ -447,7 +455,9 @@ export default function DashboardPage() {
                         <p className='text-white font-medium text-sm sm:text-base truncate'>
                           Neue Rechnung erstellt
                         </p>
-                        <p className='text-white/50 text-xs sm:text-sm'>Gestern</p>
+                        <p className='text-white/50 text-xs sm:text-sm'>
+                          Gestern
+                        </p>
                       </div>
                       <span className='text-white/70 font-semibold text-sm sm:text-base flex-shrink-0'>
                         #INV-2024-002
@@ -461,7 +471,9 @@ export default function DashboardPage() {
                         <p className='text-white font-medium text-sm sm:text-base truncate'>
                           Rechnung überfällig
                         </p>
-                        <p className='text-white/50 text-xs sm:text-sm'>Vor 3 Tagen</p>
+                        <p className='text-white/50 text-xs sm:text-sm'>
+                          Vor 3 Tagen
+                        </p>
                       </div>
                       <span className='text-yellow-400 font-semibold text-sm sm:text-base flex-shrink-0'>
                         #INV-2024-003
@@ -512,7 +524,9 @@ export default function DashboardPage() {
                         minimumFractionDigits: 2,
                       })}
                     </p>
-                    <p className='text-white/50 text-xs sm:text-sm'>Monatsumsatz</p>
+                    <p className='text-white/50 text-xs sm:text-sm'>
+                      Monatsumsatz
+                    </p>
                   </div>
                   <div className='text-center p-4 sm:p-6 bg-white/5 rounded-xl hover:bg-white/10 transition-colors duration-300 sm:col-span-2 lg:col-span-1'>
                     <div className='w-12 h-12 sm:w-16 sm:h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4'>
@@ -527,7 +541,9 @@ export default function DashboardPage() {
                         stats.totalRevenue / stats.totalInvoices
                       ).toLocaleString('de-DE')}
                     </p>
-                    <p className='text-white/50 text-xs sm:text-sm'>Pro Rechnung</p>
+                    <p className='text-white/50 text-xs sm:text-sm'>
+                      Pro Rechnung
+                    </p>
                   </div>
                 </div>
               </div>
@@ -546,7 +562,9 @@ export default function DashboardPage() {
                       <h2 className='text-2xl sm:text-3xl font-bold text-white leading-tight'>
                         {profile.firstName} {profile.lastName}
                       </h2>
-                      <p className='text-white/70 text-base sm:text-lg'>{profile.email}</p>
+                      <p className='text-white/70 text-base sm:text-lg'>
+                        {profile.email}
+                      </p>
                       {profile.isEmailVerified && (
                         <div className='flex items-center gap-2 mt-2'>
                           <CheckCircle className='h-4 w-4 sm:h-5 sm:w-5 text-green-400' />
