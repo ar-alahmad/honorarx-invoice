@@ -54,7 +54,9 @@ export default function ForgotPasswordPage() {
 
       <div className='relative z-10 min-h-screen flex flex-col items-center justify-center p-4'>
         <div className='bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20 text-center max-w-md w-full'>
-          <h1 className='text-3xl font-bold text-white mb-6'>Passwort vergessen</h1>
+          <h1 className='text-3xl font-bold text-white mb-6'>
+            Passwort vergessen
+          </h1>
 
           {message && (
             <div className='flex items-center justify-center bg-green-500/20 text-green-300 p-3 rounded-lg mb-4'>
@@ -72,7 +74,8 @@ export default function ForgotPasswordPage() {
 
           <form onSubmit={handleSubmit} className='space-y-4'>
             <p className='text-white/70 text-sm mb-4'>
-              Geben Sie Ihre E-Mail-Adresse ein, um einen Link zum Zurücksetzen des Passworts zu erhalten.
+              Geben Sie Ihre E-Mail-Adresse ein, um einen Link zum Zurücksetzen
+              des Passworts zu erhalten.
             </p>
             <div>
               <label htmlFor='email' className='sr-only'>
@@ -94,16 +97,14 @@ export default function ForgotPasswordPage() {
             <Button
               type='submit'
               disabled={isLoading}
-              className='w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-            >
+              className='w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
               {isLoading ? 'Senden...' : 'Link senden'}
             </Button>
           </form>
 
           <button
             onClick={() => router.push('/anmelden')}
-            className='mt-6 text-blue-400 hover:text-blue-300 text-sm'
-          >
+            className='mt-6 text-blue-400 hover:text-blue-300 text-sm'>
             Zurück zur Anmeldung
           </button>
         </div>
