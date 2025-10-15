@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { LucideIcon, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -42,6 +43,7 @@ export function DropdownNavBar({
   isLoggedIn = false,
   userFamilyName = '',
 }: DropdownNavBarProps) {
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState(items[0].name);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [hoveredDropdown, setHoveredDropdown] = useState<string | null>(null);
@@ -52,6 +54,35 @@ export function DropdownNavBar({
     null
   );
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Update active state based on current pathname
+  useEffect(() => {
+    // Find the main nav item that matches the current path
+    const currentItem = items.find((item) => {
+      if (item.url === pathname) return true;
+      // Check if any dropdown item matches the current path
+      if (item.dropdown) {
+        return item.dropdown.some(
+          (dropdownItem) => dropdownItem.url === pathname
+        );
+      }
+      return false;
+    });
+
+    if (currentItem) {
+      setActiveTab(currentItem.name);
+
+      // If the current path matches a dropdown item, set it as active
+      if (currentItem.dropdown) {
+        const activeDropdownItem = currentItem.dropdown.find(
+          (dropdownItem) => dropdownItem.url === pathname
+        );
+        if (activeDropdownItem) {
+          setActiveDropdownItem(activeDropdownItem.name);
+        }
+      }
+    }
+  }, [pathname, items]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
