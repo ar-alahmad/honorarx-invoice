@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { z } from 'zod';
 import { put } from '@vercel/blob';
+import { auth } from '@/lib/auth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -14,6 +15,15 @@ const contactSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if user is authenticated
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const formData = await request.formData();
 
     // Extract form fields
@@ -100,6 +110,8 @@ export async function POST(request: NextRequest) {
                   <p style="margin: 8px 0; color: #333333;"><strong>Name:</strong> ${validatedData.name}</p>
                   <p style="margin: 8px 0; color: #333333;"><strong>E-Mail:</strong> <a href="mailto:${validatedData.email}" style="color: #007bff; text-decoration: none;">${validatedData.email}</a></p>
                   <p style="margin: 8px 0; color: #333333;"><strong>Betreff:</strong> ${validatedData.subject}</p>
+                  <p style="margin: 8px 0; color: #333333;"><strong>Benutzer-ID:</strong> ${session.user.id}</p>
+                  <p style="margin: 8px 0; color: #333333;"><strong>Authentifiziert:</strong> Ja (angemeldeter Benutzer)</p>
                 </div>
                 
                 <div style="background-color: #ffffff; padding: 20px; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 20px;">

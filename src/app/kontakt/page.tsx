@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { DynamicBackground, ErrorBoundary } from '@/components/effects';
 import { Button } from '@/components/ui';
 import { Leva } from 'leva';
@@ -49,7 +50,8 @@ const subjectOptions = [
 ];
 
 export default function KontaktPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -80,6 +82,13 @@ export default function KontaktPage() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/anmelden?message=Bitte melden Sie sich an, um das Kontaktformular zu verwenden');
+    }
+  }, [status, router]);
 
   // Auto-populate form fields if user is logged in
   useEffect(() => {
@@ -252,6 +261,87 @@ export default function KontaktPage() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
+  // Show loading state while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className='relative min-h-screen'>
+        <ErrorBoundary>
+          <DynamicBackground
+            showControls={process.env.NODE_ENV === 'development'}
+            speed={0.5}
+            opacity={0.3}
+            pointSize={4.0}
+          />
+        </ErrorBoundary>
+
+        <div className='relative z-10 min-h-screen flex items-center justify-center'>
+          <div className='text-center max-w-md mx-auto px-4'>
+            <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-8 shadow-lg'>
+              <div className='w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4' />
+              <h2 className='text-2xl font-sentient text-white mb-4'>
+                Wird geladen...
+              </h2>
+              <p className='text-foreground/80'>
+                Überprüfung der Anmeldung...
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <Leva hidden />
+      </div>
+    );
+  }
+
+  // Show authentication required message
+  if (status === 'unauthenticated') {
+    return (
+      <div className='relative min-h-screen'>
+        <ErrorBoundary>
+          <DynamicBackground
+            showControls={process.env.NODE_ENV === 'development'}
+            speed={0.5}
+            opacity={0.3}
+            pointSize={4.0}
+          />
+        </ErrorBoundary>
+
+        <div className='relative z-10 min-h-screen flex items-center justify-center'>
+          <div className='text-center max-w-md mx-auto px-4'>
+            <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-8 shadow-lg'>
+              <Shield className='w-16 h-16 text-primary mx-auto mb-4' />
+              <h2 className='text-2xl font-sentient text-white mb-4'>
+                Anmeldung erforderlich
+              </h2>
+              <p className='text-foreground/80 mb-6'>
+                Um das Kontaktformular zu verwenden, müssen Sie sich zuerst anmelden. 
+                Dies hilft uns, Spam zu verhindern und sicherzustellen, dass nur 
+                authentifizierte Benutzer Kontakt aufnehmen können.
+              </p>
+              <div className='space-y-3'>
+                <Button 
+                  onClick={() => router.push('/anmelden')} 
+                  className='w-full'
+                >
+                  Anmelden
+                </Button>
+                <Button 
+                  onClick={() => router.push('/registrieren')} 
+                  variant='outline'
+                  className='w-full'
+                >
+                  Registrieren
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Leva hidden />
+      </div>
+    );
+  }
 
   if (isSubmitted) {
     return (
