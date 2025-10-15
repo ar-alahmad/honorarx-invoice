@@ -35,6 +35,11 @@ export const { auth, handlers } = NextAuth({
           return null;
         }
 
+        // Check if email is verified
+        if (!user.isEmailVerified) {
+          throw new Error('EMAIL_NOT_VERIFIED');
+        }
+
         // Update last login
         await db.user.update({
           where: { id: user.id },

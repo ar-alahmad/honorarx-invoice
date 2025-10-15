@@ -63,9 +63,9 @@ export default function RegistrierenPage() {
         throw new Error(result.error || 'Registrierung fehlgeschlagen');
       }
 
-      // Redirect to login page with success message
+      // Redirect to email verification page
       router.push(
-        '/anmelden?message=Registrierung erfolgreich! Bitte melden Sie sich an.'
+        `/email-verification?email=${encodeURIComponent(data.email)}`
       );
     } catch (err) {
       setError(

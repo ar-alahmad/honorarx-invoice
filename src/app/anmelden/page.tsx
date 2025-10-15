@@ -50,11 +50,17 @@ function LoginForm() {
         password: data.password,
         redirect: false,
         // Store remember me preference in localStorage
-        callbackUrl: data.rememberMe ? '/dashboard?remember=true' : '/dashboard',
+        callbackUrl: data.rememberMe
+          ? '/dashboard?remember=true'
+          : '/dashboard',
       });
 
       if (result?.error) {
-        setError('Ungültige Anmeldedaten');
+        if (result.error === 'EMAIL_NOT_VERIFIED') {
+          setError('Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse. Prüfen Sie Ihr E-Mail-Postfach.');
+        } else {
+          setError('Ungültige Anmeldedaten');
+        }
       } else if (result?.ok) {
         // Store remember me preference
         if (data.rememberMe) {
@@ -62,7 +68,7 @@ function LoginForm() {
         } else {
           localStorage.removeItem('honorarx-remember-me');
         }
-        
+
         // Check if user is authenticated
         const session = await getSession();
         if (session) {

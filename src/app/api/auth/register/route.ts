@@ -51,8 +51,22 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: Send verification email here
-    // For now, we'll just return success
+    // Send verification email
+    try {
+      const verificationResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/verify-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: user.email }),
+      });
+
+      if (!verificationResponse.ok) {
+        console.error('Failed to send verification email');
+      }
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+    }
 
     return NextResponse.json(
       {

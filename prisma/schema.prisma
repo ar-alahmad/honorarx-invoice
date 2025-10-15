@@ -32,6 +32,10 @@ model User {
   emailVerifiedAt DateTime?
   lastLoginAt     DateTime?
   
+  // Email verification
+  emailVerificationCode String?
+  emailVerificationExpiry DateTime?
+  
   // Password reset
   resetToken        String?
   resetTokenExpiry  DateTime?
