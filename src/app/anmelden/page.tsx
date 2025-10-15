@@ -13,6 +13,7 @@ import { Leva } from 'leva';
 const loginSchema = z.object({
   email: z.string().email('Ungültige E-Mail-Adresse'),
   password: z.string().min(1, 'Passwort ist erforderlich'),
+  rememberMe: z.boolean().optional(),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -48,11 +49,20 @@ function LoginForm() {
         email: data.email,
         password: data.password,
         redirect: false,
+        // Store remember me preference in localStorage
+        callbackUrl: data.rememberMe ? '/dashboard?remember=true' : '/dashboard',
       });
 
       if (result?.error) {
         setError('Ungültige Anmeldedaten');
       } else if (result?.ok) {
+        // Store remember me preference
+        if (data.rememberMe) {
+          localStorage.setItem('honorarx-remember-me', 'true');
+        } else {
+          localStorage.removeItem('honorarx-remember-me');
+        }
+        
         // Check if user is authenticated
         const session = await getSession();
         if (session) {
@@ -124,11 +134,12 @@ function LoginForm() {
           <div className='flex items-center justify-between'>
             <label className='flex items-center'>
               <input
+                {...register('rememberMe')}
                 type='checkbox'
                 className='w-4 h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500/50 focus:ring-2'
               />
               <span className='ml-2 text-white/70 text-sm'>
-                Angemeldet bleiben
+                Angemeldet bleiben (24h)
               </span>
             </label>
             <a
