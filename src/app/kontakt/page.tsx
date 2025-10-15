@@ -192,10 +192,10 @@ export default function KontaktPage() {
         {/* Main content */}
         <div className='px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16'>
           <div className='max-w-5xl mx-auto'>
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8'>
+            <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8'>
               {/* Contact Form - First on mobile, Right on desktop */}
               <div
-                className='lg:order-2 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-lg relative'
+                className='lg:order-2 lg:col-span-2 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-lg relative'
                 style={{ zIndex: 10000 }}>
                 <h2 className='text-xl font-sentient text-primary tracking-wide mb-5'>
                   Nachricht senden
@@ -357,14 +357,14 @@ export default function KontaktPage() {
               </div>
 
               {/* Contact Information Cards - Left Side */}
-              <div className='lg:order-1 space-y-4'>
+              <div className='lg:order-1 lg:col-span-1 flex flex-col h-full gap-4'>
                 {/* Email Card */}
-                <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30'>
-                  <div className='flex items-start'>
+                <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30 flex-1 flex flex-col'>
+                  <div className='flex items-start flex-1'>
                     <div className='w-10 h-10 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
                       <Mail className='w-5 h-5 text-primary' />
                     </div>
-                    <div>
+                    <div className='flex flex-col justify-center flex-1'>
                       <h3 className='text-base font-sentient text-primary tracking-wide mb-1'>
                         E-Mail
                       </h3>
@@ -381,12 +381,12 @@ export default function KontaktPage() {
                 </div>
 
                 {/* Address Card */}
-                <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30'>
-                  <div className='flex items-start'>
+                <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30 flex-1 flex flex-col'>
+                  <div className='flex items-start flex-1'>
                     <div className='w-10 h-10 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
                       <MapPin className='w-5 h-5 text-primary' />
                     </div>
-                    <div>
+                    <div className='flex flex-col justify-center flex-1'>
                       <h3 className='text-base font-sentient text-primary tracking-wide mb-1'>
                         Adresse
                       </h3>
@@ -405,12 +405,12 @@ export default function KontaktPage() {
                 </div>
 
                 {/* Response Time Card */}
-                <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30'>
-                  <div className='flex items-start'>
+                <div className='bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30 flex-1 flex flex-col'>
+                  <div className='flex items-start flex-1'>
                     <div className='w-10 h-10 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0'>
                       <Clock className='w-5 h-5 text-primary' />
                     </div>
-                    <div>
+                    <div className='flex flex-col justify-center flex-1'>
                       <h3 className='text-base font-sentient text-primary tracking-wide mb-1'>
                         Antwortzeit
                       </h3>
