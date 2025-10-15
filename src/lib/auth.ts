@@ -50,24 +50,42 @@ export const { auth, handlers } = NextAuth({
           id: user.id,
           email: user.email,
           name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          rememberMe: (credentials as { rememberMe?: string | boolean }).rememberMe === 'true' || (credentials as { rememberMe?: string | boolean }).rememberMe === true,
         };
       },
     }),
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 hours in seconds
-    updateAge: 60 * 60, // 1 hour in seconds
+    maxAge: 60 * 60, // 1 hour in seconds (shorter default session)
+    updateAge: 15 * 60, // 15 minutes in seconds
   },
   jwt: {
-    maxAge: 24 * 60 * 60, // 24 hours in seconds
+    maxAge: 60 * 60, // 1 hour in seconds (shorter default JWT)
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.iat = Math.floor(Date.now() / 1000); // Set issued at time
+        
+        // Check if this is a sign-in with remember me
+        const rememberMe = (user as { rememberMe?: boolean }).rememberMe;
+        if (rememberMe) {
+          // Extended session for remember me (24 hours)
+          token.maxAge = 24 * 60 * 60;
+        } else {
+          // Short session for normal login (1 hour)
+          token.maxAge = 60 * 60;
+        }
       }
+      
+      // Handle session refresh
+      if (trigger === 'update') {
+        // Update the issued at time when session is refreshed
+        token.iat = Math.floor(Date.now() / 1000);
+      }
+      
       return token;
     },
     async session({ session, token }) {

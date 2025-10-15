@@ -48,11 +48,9 @@ function LoginForm() {
       const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
+        rememberMe: data.rememberMe, // Pass remember me preference
         redirect: false,
-        // Store remember me preference in localStorage
-        callbackUrl: data.rememberMe
-          ? '/dashboard?remember=true'
-          : '/dashboard',
+        callbackUrl: '/dashboard',
       });
 
       if (result?.error) {
@@ -64,13 +62,13 @@ function LoginForm() {
           setError('Ungültige Anmeldedaten');
         }
       } else if (result?.ok) {
-        // Store remember me preference
+        // Store remember me preference for session management
         if (data.rememberMe) {
           localStorage.setItem('honorarx-remember-me', 'true');
         } else {
           localStorage.removeItem('honorarx-remember-me');
         }
-
+        
         // Check if user is authenticated
         const session = await getSession();
         if (session) {
@@ -157,10 +155,7 @@ function LoginForm() {
             </a>
           </div>
 
-          <Button
-            type='submit'
-            disabled={isLoading}
-            className='w-full'>
+          <Button type='submit' disabled={isLoading} className='w-full'>
             {isLoading ? 'Anmeldung läuft...' : 'Anmelden'}
           </Button>
         </form>

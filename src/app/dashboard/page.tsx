@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { DynamicBackground, ErrorBoundary } from '@/components/effects';
 import { Button } from '@/components/ui/button';
+import { SessionManager } from '@/components/auth/SessionManager';
 import { Leva } from 'leva';
 import {
   User,
@@ -828,6 +829,7 @@ export default function DashboardPage() {
       </div>
 
       <Leva hidden />
+      <SessionManager />
     </div>
   );
 }

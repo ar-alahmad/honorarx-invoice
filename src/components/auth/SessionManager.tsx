@@ -1,128 +1,93 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 
+/**
+ * SessionManager - Handles automatic logout on browser close
+ * This component ensures users are signed out when they close the browser
+ * unless they explicitly chose "Remember Me" during login
+ */
 export function SessionManager() {
   const { data: session, status } = useSession();
-  const inactivityTimer = useRef<NodeJS.Timeout | null>(null);
-  const lastActivity = useRef<number>(Date.now());
 
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status !== 'authenticated' || !session) return;
 
-    // Check if user chose "remember me"
-    const rememberMe = localStorage.getItem('honorarx-remember-me') === 'true';
+    // Check if user chose "Remember Me"
+    const rememberMe = localStorage.getItem('honorarx-remember-me');
+    
+    // If user didn't choose "Remember Me", set up browser close detection
+    if (!rememberMe) {
+      // Set a flag to track if the page is being closed
+      let isPageClosing = false;
 
-    // Function to handle beforeunload (browser close/refresh)
-    const handleBeforeUnload = () => {
-      if (session && !rememberMe) {
-        // Clear session data from localStorage/sessionStorage for non-remembered users
-        localStorage.removeItem('next-auth.session-token');
-        sessionStorage.clear();
-      }
-    };
+      // Handle beforeunload event (browser close/refresh)
+      const handleBeforeUnload = () => {
+        isPageClosing = true;
+        
+        // Use sendBeacon for reliable logout on page close
+        if (navigator.sendBeacon) {
+          // Send a logout request to the server
+          navigator.sendBeacon('/api/auth/signout', JSON.stringify({
+            reason: 'browser_close'
+          }));
+        }
+      };
 
-    // Function to handle visibility change (tab switch/close)
-    const handleVisibilityChange = () => {
-      if (document.hidden && session && !rememberMe) {
-        // Start inactivity timer for non-remembered users
-        startInactivityTimer();
-      } else if (!document.hidden) {
-        // Clear inactivity timer when user returns
-        clearInactivityTimer();
-        lastActivity.current = Date.now();
-      }
-    };
+      // Handle page visibility change (tab switch, minimize, etc.)
+      const handleVisibilityChange = () => {
+        if (document.hidden && !isPageClosing) {
+          // Page is hidden but not closing - could be tab switch
+          // Set a timeout to sign out if page stays hidden for too long
+          const timeoutId = setTimeout(() => {
+            if (document.hidden) {
+              signOut({ callbackUrl: '/' });
+            }
+          }, 5 * 60 * 1000); // 5 minutes timeout
 
-    // Function to handle page unload
-    const handleUnload = () => {
-      if (session && !rememberMe) {
-        // Force sign out on page unload for non-remembered users
-        signOut({ redirect: false });
-      }
-    };
+          // Clear timeout when page becomes visible again
+          const handleVisibilityBack = () => {
+            clearTimeout(timeoutId);
+            document.removeEventListener('visibilitychange', handleVisibilityBack);
+          };
 
-    // Function to track user activity
-    const handleActivity = () => {
-      lastActivity.current = Date.now();
-      if (!rememberMe) {
-        clearInactivityTimer();
-        startInactivityTimer();
-      }
-    };
+          document.addEventListener('visibilitychange', handleVisibilityBack);
+        }
+      };
 
-    // Function to start inactivity timer
-    const startInactivityTimer = () => {
-      clearInactivityTimer();
-      inactivityTimer.current = setTimeout(
-        () => {
-          if (session && !rememberMe) {
-            signOut({ redirect: true });
+      // Handle page focus/blur events
+      const handlePageBlur = () => {
+        // Set a timeout to sign out if page loses focus for too long
+        const timeoutId = setTimeout(() => {
+          if (!document.hasFocus()) {
+            signOut({ callbackUrl: '/' });
           }
-        },
-        30 * 60 * 1000
-      ); // 30 minutes of inactivity
-    };
+        }, 10 * 60 * 1000); // 10 minutes timeout
 
-    // Function to clear inactivity timer
-    const clearInactivityTimer = () => {
-      if (inactivityTimer.current) {
-        clearTimeout(inactivityTimer.current);
-        inactivityTimer.current = null;
-      }
-    };
+        // Clear timeout when page regains focus
+        const handlePageFocus = () => {
+          clearTimeout(timeoutId);
+          window.removeEventListener('focus', handlePageFocus);
+        };
 
-    // Add event listeners
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('unload', handleUnload);
-    window.addEventListener('mousedown', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-    window.addEventListener('scroll', handleActivity);
+        window.addEventListener('focus', handlePageFocus);
+      };
 
-    // Start inactivity timer if user is logged in and didn't choose remember me
-    if (session && !rememberMe) {
-      startInactivityTimer();
+      // Add event listeners
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('blur', handlePageBlur);
+
+      // Cleanup function
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('blur', handlePageBlur);
+      };
     }
-
-    // Cleanup function
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('unload', handleUnload);
-      window.removeEventListener('mousedown', handleActivity);
-      window.removeEventListener('keydown', handleActivity);
-      window.removeEventListener('scroll', handleActivity);
-      clearInactivityTimer();
-    };
   }, [session, status]);
 
-  // Check for session expiration on mount and periodically
-  useEffect(() => {
-    if (!session) return;
-
-    const rememberMe = localStorage.getItem('honorarx-remember-me') === 'true';
-    const maxAge = rememberMe ? 24 * 60 * 60 * 1000 : 2 * 60 * 60 * 1000; // 24h if remember me, 2h otherwise
-
-    const checkSessionExpiry = () => {
-      const now = Date.now();
-      const sessionStart = session.user ? Date.now() : 0; // This is a simplified check
-
-      // If session is older than maxAge, sign out
-      if (now - sessionStart > maxAge) {
-        signOut({ redirect: true });
-      }
-    };
-
-    // Check immediately
-    checkSessionExpiry();
-
-    // Check every 5 minutes
-    const interval = setInterval(checkSessionExpiry, 5 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, [session]);
-
-  return null; // This component doesn't render anything
+  // This component doesn't render anything
+  return null;
 }
