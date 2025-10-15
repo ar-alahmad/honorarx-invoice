@@ -167,10 +167,7 @@ function PasswordResetForm() {
                 />
               </div>
 
-              <Button
-                type='submit'
-                disabled={isLoading}
-                className='w-full'>
+              <Button type='submit' disabled={isLoading} className='w-full'>
                 {isLoading ? 'Wird gesendet...' : 'Link senden'}
               </Button>
             </form>
@@ -210,10 +207,7 @@ function PasswordResetForm() {
                 />
               </div>
 
-              <Button
-                type='submit'
-                disabled={isLoading}
-                className='w-full'>
+              <Button type='submit' disabled={isLoading} className='w-full'>
                 {isLoading ? 'Wird aktualisiert...' : 'Passwort aktualisieren'}
               </Button>
             </form>

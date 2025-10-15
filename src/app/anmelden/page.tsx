@@ -68,7 +68,7 @@ function LoginForm() {
         } else {
           localStorage.removeItem('honorarx-remember-me');
         }
-        
+
         // Check if user is authenticated
         const session = await getSession();
         if (session) {

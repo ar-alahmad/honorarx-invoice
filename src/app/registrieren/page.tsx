@@ -198,10 +198,7 @@ export default function RegistrierenPage() {
                 )}
               </div>
 
-              <Button
-                type='submit'
-                disabled={isLoading}
-                className='w-full'>
+              <Button type='submit' disabled={isLoading} className='w-full'>
                 {isLoading ? 'Registrierung läuft...' : 'Konto erstellen'}
               </Button>
             </form>

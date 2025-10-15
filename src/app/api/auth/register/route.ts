@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       company: validatedData.company,
       isEmailVerified: false, // Will be verified via email
     };
-    
+
     const encryptedUserData = encryptUserData(userData);
     const user = await db.user.create({
       data: encryptedUserData as Parameters<typeof db.user.create>[0]['data'],

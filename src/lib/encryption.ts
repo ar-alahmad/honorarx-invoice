@@ -11,7 +11,7 @@ const getEncryptionKey = (): Buffer => {
 
 export const encrypt = (text: string): string => {
   if (!text) return text; // Don't encrypt empty strings
-  
+
   const key = getEncryptionKey();
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipher(ALGORITHM, key);
@@ -24,7 +24,7 @@ export const encrypt = (text: string): string => {
 
 export const decrypt = (encryptedText: string): string => {
   if (!encryptedText) return encryptedText; // Don't decrypt empty strings
-  
+
   try {
     const key = getEncryptionKey();
     const textParts = encryptedText.split(':');

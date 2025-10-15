@@ -50,7 +50,11 @@ export const { auth, handlers } = NextAuth({
           id: user.id,
           email: user.email,
           name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-          rememberMe: (credentials as { rememberMe?: string | boolean }).rememberMe === 'true' || (credentials as { rememberMe?: string | boolean }).rememberMe === true,
+          rememberMe:
+            (credentials as { rememberMe?: string | boolean }).rememberMe ===
+              'true' ||
+            (credentials as { rememberMe?: string | boolean }).rememberMe ===
+              true,
         };
       },
     }),
@@ -68,7 +72,7 @@ export const { auth, handlers } = NextAuth({
       if (user) {
         token.id = user.id;
         token.iat = Math.floor(Date.now() / 1000); // Set issued at time
-        
+
         // Check if this is a sign-in with remember me
         const rememberMe = (user as { rememberMe?: boolean }).rememberMe;
         if (rememberMe) {
@@ -79,13 +83,13 @@ export const { auth, handlers } = NextAuth({
           token.maxAge = 60 * 60;
         }
       }
-      
+
       // Handle session refresh
       if (trigger === 'update') {
         // Update the issued at time when session is refreshed
         token.iat = Math.floor(Date.now() / 1000);
       }
-      
+
       return token;
     },
     async session({ session, token }) {

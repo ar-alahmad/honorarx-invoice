@@ -72,11 +72,15 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('Profile update request body:', body);
+    
     const validatedData = updateProfileSchema.parse(body);
+    console.log('Validated data:', validatedData);
 
     // Encrypt sensitive data before updating
     const encryptedData = encryptUserData(validatedData);
-    
+    console.log('Encrypted data:', encryptedData);
+
     const updatedUser = await db.user.update({
       where: { id: session.user.id },
       data: encryptedData as Parameters<typeof db.user.update>[0]['data'],
@@ -105,16 +109,18 @@ export async function PUT(request: NextRequest) {
       user: decryptedUser,
     });
   } catch (error) {
+    console.error('Profile update error:', error);
+    
     if (error instanceof z.ZodError) {
+      console.error('Validation error details:', error.issues);
       return NextResponse.json(
         { error: 'Validation error', details: error.issues },
         { status: 400 }
       );
     }
 
-    console.error('Profile update error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
