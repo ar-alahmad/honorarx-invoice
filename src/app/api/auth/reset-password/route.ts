@@ -46,7 +46,6 @@ export async function POST(request: NextRequest) {
     await db.user.update({
       where: { id: user.id },
       data: {
-        // We'll add these fields to the schema
         resetToken,
         resetTokenExpiry,
       },
