@@ -270,7 +270,7 @@ export function DropdownNavBar({
                       animate='visible'
                       exit='hidden'
                       className='absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-background/95 border border-border backdrop-blur-lg rounded-xl shadow-xl overflow-hidden'
-                      style={{ zIndex: 1000 }}>
+                      style={{ zIndex: 9999 }}>
                       {/* Dropdown Items */}
                       <div className='py-2'>
                         {item.dropdown?.map((dropdownItem) => {
