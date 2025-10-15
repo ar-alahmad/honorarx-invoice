@@ -24,7 +24,13 @@ export default function Home() {
 
       {/* Main content - positioned at bottom like archive */}
       <div className='pb-16 mt-auto text-center relative'>
-        <Pill className='mb-6'>BETA RELEASE</Pill>
+        <Pill
+          className='mb-6'
+          href='/anmelden'
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}>
+          [ANMELDEN]
+        </Pill>
         <h1 className='text-5xl sm:text-6xl md:text-7xl font-sentient text-white mb-8'>
           <span
             className='inline-block cursor-pointer transition-all duration-300 hover:scale-105'
