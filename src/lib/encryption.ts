@@ -11,10 +11,10 @@ const getEncryptionKey = (): Buffer => {
 
 export const encrypt = (text: string): string => {
   if (!text) return text; // Don't encrypt empty strings
-
+  
   const key = getEncryptionKey();
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipher(ALGORITHM, key);
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
 
   let encrypted = cipher.update(text, 'utf8', 'hex');
   encrypted += cipher.final('hex');
@@ -24,14 +24,14 @@ export const encrypt = (text: string): string => {
 
 export const decrypt = (encryptedText: string): string => {
   if (!encryptedText) return encryptedText; // Don't decrypt empty strings
-
+  
   try {
     const key = getEncryptionKey();
     const textParts = encryptedText.split(':');
-    textParts.shift(); // Remove IV (not used in this simplified version)
+    const iv = Buffer.from(textParts.shift()!, 'hex'); // Get IV from the beginning
     const encrypted = textParts.join(':');
 
-    const decipher = crypto.createDecipher(ALGORITHM, key);
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
 
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
