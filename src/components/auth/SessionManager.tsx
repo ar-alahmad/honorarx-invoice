@@ -16,16 +16,16 @@ export function SessionManager() {
 
     // Check if user chose "Remember Me"
     const rememberMe = localStorage.getItem('honorarx-remember-me');
-    
+
     // Detect Safari browser
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    
+
     // For Safari, be more aggressive about session clearing
     if (isSafari && !rememberMe) {
       // Clear any existing auth data on page load for Safari
       try {
         sessionStorage.clear();
-        Object.keys(localStorage).forEach(key => {
+        Object.keys(localStorage).forEach((key) => {
           if (key.startsWith('next-auth') || key.includes('auth')) {
             localStorage.removeItem(key);
           }
@@ -48,12 +48,12 @@ export function SessionManager() {
         try {
           // Clear all localStorage items related to authentication
           localStorage.removeItem('honorarx-remember-me');
-          
+
           // Clear sessionStorage (Safari sometimes persists this)
           sessionStorage.clear();
-          
+
           // Clear any NextAuth-related storage
-          Object.keys(localStorage).forEach(key => {
+          Object.keys(localStorage).forEach((key) => {
             if (key.startsWith('next-auth') || key.includes('auth')) {
               localStorage.removeItem(key);
             }
