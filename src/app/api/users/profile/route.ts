@@ -73,7 +73,7 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json();
     console.log('Profile update request body:', body);
-    
+
     const validatedData = updateProfileSchema.parse(body);
     console.log('Validated data:', validatedData);
 
@@ -110,7 +110,7 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Profile update error:', error);
-    
+
     if (error instanceof z.ZodError) {
       console.error('Validation error details:', error.issues);
       return NextResponse.json(
@@ -120,7 +120,10 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }
