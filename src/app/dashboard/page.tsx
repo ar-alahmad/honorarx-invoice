@@ -227,7 +227,7 @@ export default function DashboardPage() {
       </ErrorBoundary>
 
       <div className='relative z-10 min-h-screen p-4 sm:p-6 lg:p-8'>
-        <div className='max-w-7xl mx-auto pt-20 sm:pt-24 lg:pt-28'>
+        <div className='max-w-7xl mx-auto pt-28 sm:pt-32 lg:pt-36'>
           {/* Header Section */}
           <div className='flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 sm:mb-10 lg:mb-12 gap-6'>
             <div className='flex items-center gap-4 sm:gap-6'>
