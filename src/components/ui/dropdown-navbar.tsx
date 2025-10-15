@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -36,6 +36,9 @@ interface DropdownNavBarProps {
  * - Backdrop blur and glass morphism
  * - Active state management
  * - Professional dropdown styling
+ * - Mobile-optimized dropdown behavior (auto-closes on navigation, proper touch handling)
+ * - Smart dropdown positioning (prevents edge overflow on mobile)
+ * - Responsive dropdown width (USER dropdown narrower on mobile for better fit)
  */
 export function DropdownNavBar({
   items,
@@ -54,9 +57,17 @@ export function DropdownNavBar({
     null
   );
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const [dropdownPosition, setDropdownPosition] = useState<{
+    [key: string]: 'left' | 'center' | 'right';
+  }>({});
 
   // Update active state based on current pathname
   useEffect(() => {
+    // Reset dropdown states when pathname changes (fixes mobile dropdown staying open)
+    setActiveDropdown(null);
+    setClickOpenedDropdown(null);
+    setHoveredDropdown(null);
+
     // Find the main nav item that matches the current path
     const currentItem = items.find((item) => {
       if (item.url === pathname) return true;
@@ -92,21 +103,105 @@ export function DropdownNavBar({
       if (!isDropdownClick) {
         setActiveDropdown(null);
         setClickOpenedDropdown(null);
+        setHoveredDropdown(null);
+      }
+    };
+
+    // Handle touch events for mobile devices
+    const handleTouchOutside = (event: TouchEvent) => {
+      const target = event.target as Element;
+      const isDropdownClick = target.closest('[data-dropdown]');
+      if (!isDropdownClick) {
+        setActiveDropdown(null);
+        setClickOpenedDropdown(null);
+        setHoveredDropdown(null);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleTouchOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleTouchOutside);
+    };
   }, []);
+
+  // Calculate optimal dropdown position based on viewport and item position
+  const calculateDropdownPosition = useCallback(
+    (itemName: string, itemIndex: number) => {
+      const totalItems = items.length;
+      const viewportWidth = window.innerWidth;
+      const dropdownWidth = 192; // w-48 = 192px (default)
+
+      // On mobile (below md breakpoint), use smart positioning
+      if (viewportWidth < 768) {
+        // For the last item (USER), position it to the right
+        if (itemIndex === totalItems - 1) {
+          return 'right';
+        }
+        // For the first item, position it to the left
+        if (itemIndex === 0) {
+          return 'left';
+        }
+        // For middle items, try to center but adjust if needed
+        const itemCenter = (itemIndex + 0.5) * (viewportWidth / totalItems);
+        const dropdownLeft = itemCenter - dropdownWidth / 2;
+        const dropdownRight = itemCenter + dropdownWidth / 2;
+
+        if (dropdownLeft < 16) return 'left'; // 16px margin
+        if (dropdownRight > viewportWidth - 16) return 'right'; // 16px margin
+        return 'center';
+      }
+
+      // On desktop, always center
+      return 'center';
+    },
+    [items]
+  );
+
+  // Initialize and recalculate dropdown positions on window resize
+  useEffect(() => {
+    const calculateAllPositions = () => {
+      // Calculate positions for all items
+      const newPositions: { [key: string]: 'left' | 'center' | 'right' } = {};
+      items.forEach((item, index) => {
+        if (item.dropdown) {
+          newPositions[item.name] = calculateDropdownPosition(item.name, index);
+        }
+      });
+      setDropdownPosition(newPositions);
+    };
+
+    // Initial calculation
+    calculateAllPositions();
+
+    // Recalculate on resize
+    const handleResize = () => {
+      calculateAllPositions();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [items, calculateDropdownPosition]);
 
   const handleDropdownToggle = (itemName: string) => {
     if (activeDropdown === itemName) {
+      // Close dropdown and reset all related states
       setActiveDropdown(null);
       setClickOpenedDropdown(null);
+      setHoveredDropdown(null);
     } else {
+      // Open dropdown and set states
       setActiveDropdown(itemName);
       setClickOpenedDropdown(itemName);
+      setHoveredDropdown(null); // Clear hover state to prevent conflicts
       setActiveDropdownItem(null);
+
+      // Calculate and set dropdown position
+      const itemIndex = items.findIndex((item) => item.name === itemName);
+      const position = calculateDropdownPosition(itemName, itemIndex);
+      setDropdownPosition((prev) => ({ ...prev, [itemName]: position }));
     }
   };
 
@@ -157,9 +252,15 @@ export function DropdownNavBar({
               key={item.name}
               className='relative'
               data-dropdown
-              onMouseEnter={() => hasDropdown && setHoveredDropdown(item.name)}
+              onMouseEnter={() => {
+                // Only handle hover on desktop (not mobile)
+                if (hasDropdown && window.innerWidth >= 768) {
+                  setHoveredDropdown(item.name);
+                }
+              }}
               onMouseLeave={() => {
-                if (hasDropdown) {
+                // Only handle hover on desktop (not mobile)
+                if (hasDropdown && window.innerWidth >= 768) {
                   setHoveredDropdown(null);
                   // Only close if it wasn't opened by click
                   if (clickOpenedDropdown !== item.name) {
@@ -170,7 +271,10 @@ export function DropdownNavBar({
               {/* Main Navigation Item */}
               {hasDropdown ? (
                 <div
-                  onClick={() => handleDropdownToggle(item.name)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDropdownToggle(item.name);
+                  }}
                   className={cn(
                     'relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors flex items-center gap-2',
                     'text-foreground/80 hover:text-primary',
@@ -269,7 +373,19 @@ export function DropdownNavBar({
                       initial='hidden'
                       animate='visible'
                       exit='hidden'
-                      className='absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-background/95 border border-border backdrop-blur-lg rounded-xl shadow-xl overflow-hidden'
+                      className={cn(
+                        'absolute top-full mt-2 bg-background/95 border border-border backdrop-blur-lg rounded-xl shadow-xl overflow-hidden',
+                        // Responsive width: narrower for USER dropdown on mobile only
+                        item.name === 'USER' ? 'w-40 md:w-48' : 'w-48',
+                        // Smart positioning based on calculated position
+                        dropdownPosition[item.name] === 'left' && 'left-0',
+                        dropdownPosition[item.name] === 'center' &&
+                          'left-1/2 -translate-x-1/2',
+                        dropdownPosition[item.name] === 'right' && 'right-0',
+                        // Fallback to center if no position calculated yet
+                        !dropdownPosition[item.name] &&
+                          'left-1/2 -translate-x-1/2'
+                      )}
                       style={{ zIndex: 9999 }}>
                       {/* Dropdown Items */}
                       <div className='py-2'>
@@ -281,9 +397,11 @@ export function DropdownNavBar({
                               key={dropdownItem.name}
                               href={dropdownItem.url}
                               onClick={() => {
+                                // Immediately close dropdown and set states before navigation
                                 setActiveTab(item.name);
                                 setActiveDropdown(null);
                                 setClickOpenedDropdown(null);
+                                setHoveredDropdown(null);
                                 setActiveDropdownItem(dropdownItem.name);
                               }}
                               className={cn(

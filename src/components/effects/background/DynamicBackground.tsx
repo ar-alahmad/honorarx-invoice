@@ -6,6 +6,7 @@ import { useControls } from 'leva';
 import { Particles } from './particles/Particles';
 import { VignetteShader } from './shaders/vignetteShader';
 import { DynamicBackgroundProps, ParticleSystemConfig } from './types';
+import { useEffect, useState } from 'react';
 
 /**
  * DynamicBackground - Main component for the particle background system
@@ -18,16 +19,48 @@ export const DynamicBackground = ({
   className = '',
   ...props
 }: DynamicBackgroundProps) => {
+  // Detect mobile device and WebGL support
+  const [isMobile, setIsMobile] = useState(false);
+  const [webglSupported, setWebglSupported] = useState(true);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent;
+      const isMobileDevice =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          userAgent
+        );
+      const isSmallScreen = window.innerWidth < 768;
+      setIsMobile(isMobileDevice || isSmallScreen);
+    };
+
+    const checkWebGL = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const gl =
+          canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        setWebglSupported(!!gl);
+      } catch {
+        setWebglSupported(false);
+      }
+    };
+
+    checkMobile();
+    checkWebGL();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Default configuration for the particle system
   const defaultConfig: ParticleSystemConfig = {
-    speed: 1.0,
+    speed: isMobile ? 0.5 : 1.0, // Slower animation on mobile
     focus: 3.8,
     aperture: 1.79,
-    size: 512,
+    size: isMobile ? 256 : 512, // Smaller particle grid on mobile
     noiseScale: 0.6,
     noiseIntensity: 0.52,
     timeScale: 1,
-    pointSize: 10.0,
+    pointSize: isMobile ? 6.0 : 10.0, // Smaller particles on mobile
     opacity: 0.8,
     planeScale: 10.0,
     vignetteDarkness: 1.5,
@@ -80,6 +113,15 @@ export const DynamicBackground = ({
     { collapsed: !showControls }
   );
 
+  // Fallback for devices without WebGL support
+  if (!webglSupported) {
+    return (
+      <div className={`fixed inset-0 w-full h-full ${className}`} id='webgl'>
+        <div className='w-full h-full bg-gradient-to-br from-gray-900 via-black to-gray-800' />
+      </div>
+    );
+  }
+
   return (
     <div className={`fixed inset-0 w-full h-full ${className}`} id='webgl'>
       <Canvas
@@ -91,9 +133,13 @@ export const DynamicBackground = ({
           near: 0.01,
           far: 300,
         }}
-        dpr={[1, 2]} // Limit pixel ratio for better performance
-        performance={{ min: 0.5 }} // Adaptive performance
-      >
+        dpr={isMobile ? [1, 1.5] : [1, 2]} // More conservative pixel ratio for mobile
+        performance={{ min: 0.2 }} // Lower performance threshold for mobile
+        gl={{
+          antialias: false, // Disable antialiasing on mobile for better performance
+          alpha: false,
+          powerPreference: 'low-power', // Use integrated GPU on mobile
+        }}>
         {/* Background color */}
         <color attach='background' args={['#000']} />
 
@@ -114,14 +160,16 @@ export const DynamicBackground = ({
           introspect={hovering}
         />
 
-        {/* Post-processing effects */}
-        <Effects multisamping={0} disableGamma>
-          <shaderPass
-            args={[VignetteShader]}
-            uniforms-darkness-value={controls.vignetteDarkness}
-            uniforms-offset-value={controls.vignetteOffset}
-          />
-        </Effects>
+        {/* Post-processing effects - disabled on mobile for better performance */}
+        {!isMobile && (
+          <Effects multisamping={0} disableGamma>
+            <shaderPass
+              args={[VignetteShader]}
+              uniforms-darkness-value={controls.vignetteDarkness}
+              uniforms-offset-value={controls.vignetteOffset}
+            />
+          </Effects>
+        )}
       </Canvas>
     </div>
   );
