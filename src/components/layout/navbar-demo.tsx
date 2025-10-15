@@ -15,6 +15,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { DropdownNavBar } from '@/components/ui/dropdown-navbar';
+import { useSession, signOut } from 'next-auth/react';
 
 /**
  * NavBarDemo - Professional navigation component for HonorarX Invoice
@@ -25,9 +26,9 @@ import { DropdownNavBar } from '@/components/ui/dropdown-navbar';
  * - USER: User account with authentication-aware dropdown
  */
 export function NavBarDemo() {
-  // TODO: Replace with actual authentication state
-  const isLoggedIn = false; // This will be dynamic later
-  const userFamilyName = 'MÜLLER'; // This will be dynamic later
+  const { data: session } = useSession();
+  const isLoggedIn = !!session;
+  const userFamilyName = session?.user?.name?.split(' ').pop()?.toUpperCase() || 'USER';
 
   const navItems = [
     {
@@ -104,6 +105,7 @@ export function NavBarDemo() {
               name: 'Abmelden',
               url: '#',
               icon: LogOut,
+              onClick: () => signOut({ callbackUrl: '/' }),
             },
           ]
         : [

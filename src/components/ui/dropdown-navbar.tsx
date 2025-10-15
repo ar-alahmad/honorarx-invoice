@@ -11,6 +11,7 @@ interface DropdownItem {
   name: string;
   url: string;
   icon?: LucideIcon;
+  onClick?: () => void;
 }
 
 interface NavItem {
@@ -392,7 +393,29 @@ export function DropdownNavBar({
                         {item.dropdown?.map((dropdownItem) => {
                           const isActiveDropdownItem =
                             activeDropdownItem === dropdownItem.name;
-                          return (
+                          return dropdownItem.onClick ? (
+                            <button
+                              key={dropdownItem.name}
+                              onClick={() => {
+                                // Immediately close dropdown and set states before action
+                                setActiveTab(item.name);
+                                setActiveDropdown(null);
+                                setClickOpenedDropdown(null);
+                                setHoveredDropdown(null);
+                                setActiveDropdownItem(dropdownItem.name);
+                                dropdownItem.onClick?.();
+                              }}
+                              className={cn(
+                                'flex items-center px-4 py-2 text-sm transition-colors group relative w-full text-left',
+                                isActiveDropdownItem
+                                  ? 'bg-primary/10 text-primary border-r-2 border-primary'
+                                  : 'text-foreground/80 hover:bg-muted/50 hover:text-primary'
+                              )}>
+                              <span className='flex-1'>
+                                {dropdownItem.name}
+                              </span>
+                            </button>
+                          ) : (
                             <Link
                               key={dropdownItem.name}
                               href={dropdownItem.url}
