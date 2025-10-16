@@ -11,32 +11,13 @@ import { SessionExpiryNotification } from '@/components/auth/SessionExpiryNotifi
 import { Leva } from 'leva';
 import {
   User,
-  Mail,
-  Building2,
-  MapPin,
   Save,
-  Edit3,
   CheckCircle,
   AlertCircle,
   Loader2,
-  FileText,
-  Plus,
-  List,
-  Eye,
-  Settings,
-  TrendingUp,
-  Clock,
   Euro,
-  Calendar,
-  Phone,
-  Globe,
   BarChart3,
-  Activity,
-  Bell,
   LogOut,
-  Zap,
-  Target,
-  Award,
 } from 'lucide-react';
 
 interface UserProfile {
@@ -154,7 +135,7 @@ export default function DashboardPage() {
         const errorData = await response.json();
         setError(errorData.message || 'Fehler beim Aktualisieren des Profils');
       }
-    } catch (err) {
+    } catch {
       setError('Netzwerkfehler beim Aktualisieren des Profils');
     } finally {
       setIsSaving(false);

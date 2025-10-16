@@ -8,7 +8,7 @@ import { ZodError } from 'zod';
 export interface ApiError {
   error: string;
   code?: string;
-  details?: any;
+  details?: unknown;
   timestamp: string;
 }
 
@@ -19,7 +19,7 @@ export function createErrorResponse(
   message: string,
   status: number = 500,
   code?: string,
-  details?: any
+  details?: unknown
 ): NextResponse<ApiError> {
   const errorResponse: ApiError = {
     error: message,
@@ -114,7 +114,7 @@ export function handleServerError(error: unknown): NextResponse<ApiError> {
 /**
  * Generic error handler wrapper for API routes
  */
-export function withErrorHandler<T extends any[]>(
+export function withErrorHandler<T extends unknown[]>(
   handler: (...args: T) => Promise<NextResponse>
 ) {
   return async (...args: T): Promise<NextResponse> => {

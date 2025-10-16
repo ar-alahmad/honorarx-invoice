@@ -47,16 +47,16 @@ export function sanitizePassword(password: string): string {
 /**
  * Sanitize object with string properties
  */
-export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
+export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
   const sanitized = {} as T;
 
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value === 'string') {
       sanitized[key as keyof T] = sanitizeString(value) as T[keyof T];
-    } else if (typeof value === 'object' && value !== null) {
-      sanitized[key as keyof T] = sanitizeObject(value);
+    } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      sanitized[key as keyof T] = sanitizeObject(value as Record<string, unknown>) as T[keyof T];
     } else {
-      sanitized[key as keyof T] = value;
+      sanitized[key as keyof T] = value as T[keyof T];
     }
   }
 
@@ -67,16 +67,16 @@ export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
  * Validate and sanitize form data
  */
 export function sanitizeFormData(
-  data: Record<string, any>
-): Record<string, any> {
+  data: Record<string, unknown>
+): Record<string, unknown> {
   const sanitized = sanitizeObject(data);
 
   // Additional validation for specific fields
-  if (sanitized.email) {
+  if (sanitized.email && typeof sanitized.email === 'string') {
     sanitized.email = sanitizeEmail(sanitized.email);
   }
 
-  if (sanitized.password) {
+  if (sanitized.password && typeof sanitized.password === 'string') {
     sanitized.password = sanitizePassword(sanitized.password);
   }
 

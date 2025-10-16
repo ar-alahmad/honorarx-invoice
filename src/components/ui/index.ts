@@ -8,5 +8,4 @@
 
 export { Button, buttonVariants } from './button';
 export { Pill } from './pill';
-export { NavBar } from './navbar';
 export { DropdownNavBar } from './dropdown-navbar';

@@ -2,14 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { authRateLimit } from '@/lib/rate-limit';
-import {
-  createSuccessResponse,
-  handleValidationError,
-  handleServerError,
-} from '@/lib/error-handler';
 import { sanitizeEmail } from '@/lib/sanitize';
 import { Resend } from 'resend';
 import crypto from 'crypto';
+
+export const runtime = 'nodejs';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

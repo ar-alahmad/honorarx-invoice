@@ -18,14 +18,11 @@ export function rateLimit(options: RateLimitOptions) {
     windowMs,
     maxRequests,
     message = 'Too many requests',
-    skipSuccessfulRequests = false,
   } = options;
 
   return (request: NextRequest) => {
-    const ip =
-      request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+    const ip = request.headers.get('x-forwarded-for') || 'unknown';
     const now = Date.now();
-    const windowStart = now - windowMs;
 
     // Clean up expired entries
     for (const [key, value] of rateLimitMap.entries()) {

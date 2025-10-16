@@ -431,10 +431,6 @@ export default function DashboardPage() {
             <div
               className='flex items-center gap-4'
               style={{ position: 'relative', zIndex: 10000 }}>
-              {console.log('Dashboard: Rendering logout buttons section')}
-              {console.log(
-                'Dashboard: Container div rendered with high z-index'
-              )}
               <button
                 ref={abmeldenButtonRef}
                 onMouseDown={() =>
@@ -543,7 +539,6 @@ export default function DashboardPage() {
               </button>
 
               {/* Debug: Simple Test Button */}
-              {console.log('Dashboard: About to render simple test button')}
               <button
                 onClick={() =>
                   console.log('Dashboard: Simple test button clicked')

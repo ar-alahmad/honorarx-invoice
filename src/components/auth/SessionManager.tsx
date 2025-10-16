@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { logoutManager } from '@/lib/logout-manager';
+import { InactivityWarning } from './InactivityWarning';
 
 /**
  * SessionManager - Handles session management and browser close detection
@@ -14,27 +15,64 @@ export function SessionManager() {
   const isRememberMe = useRef<boolean>(false);
   const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
   const inactivityTimeout = useRef<NodeJS.Timeout | null>(null);
+  const warningTimeout = useRef<NodeJS.Timeout | null>(null);
+  const bcRef = useRef<BroadcastChannel | null>(null);
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningSeconds, setWarningSeconds] = useState(30);
+
+  // Handle logout
+  const handleLogout = useCallback(() => {
+    try {
+      bcRef.current?.postMessage('logout');
+      localStorage.setItem('honorarx-logout', '1');
+      setTimeout(() => localStorage.removeItem('honorarx-logout'), 2000);
+    } catch {}
+    logoutManager.logout('/anmelden').catch(console.error);
+  }, []);
 
   // Reset inactivity timer
   const resetInactivityTimer = useCallback(() => {
+    // Clear existing timers
     if (inactivityTimeout.current) {
       clearTimeout(inactivityTimeout.current);
     }
+    if (warningTimeout.current) {
+      clearTimeout(warningTimeout.current);
+    }
+    
+    // Hide warning if shown
+    setShowWarning(false);
 
     // Only set inactivity timeout for non-remember-me sessions
     const rememberMe = localStorage.getItem('honorarx-remember-me');
     if (rememberMe !== 'true') {
+      // Update last activity timestamp
+      sessionStorage.setItem('honorarx-last-activity', Date.now().toString());
+      
+      // Show warning 30 seconds before logout (14.5 minutes)
+      warningTimeout.current = setTimeout(
+        () => {
+          setShowWarning(true);
+          setWarningSeconds(30);
+        },
+        14.5 * 60 * 1000
+      ); // 14.5 minutes - show warning
+      
+      // Auto logout after 15 minutes
       inactivityTimeout.current = setTimeout(
         () => {
-          console.log(
-            'SessionManager: Inactivity timeout reached, logging out'
-          );
-          logoutManager.logout('/anmelden').catch(console.error);
+          handleLogout();
         },
         15 * 60 * 1000
-      ); // 15 minutes
+      ); // 15 minutes of inactivity
     }
-  }, []);
+  }, [handleLogout]);
+
+  // Handle stay logged in
+  const handleStayLoggedIn = useCallback(() => {
+    setShowWarning(false);
+    resetInactivityTimer();
+  }, [resetInactivityTimer]);
 
   // Activity event handlers
   const handleActivity = useCallback(() => {
@@ -48,17 +86,34 @@ export function SessionManager() {
         logoutManager.isLogoutInProgress() ||
         logoutManager.isLogoutFlagSet()
       ) {
-        console.log(
-          'SessionManager: Logout in progress, skipping session setup'
-        );
         return;
+      }
+
+      // Check if this is a remember-me session
+      let rememberMe = localStorage.getItem('honorarx-remember-me');
+      
+      // For non-remember-me sessions, check if browser was closed
+      if (rememberMe !== 'true') {
+        const browserSessionId = sessionStorage.getItem('honorarx-browser-session-id');
+        const lastBrowserSessionId = localStorage.getItem('honorarx-last-browser-session-id');
+        
+        // If no browser session ID in sessionStorage, this is a fresh browser session
+        if (!browserSessionId) {
+          // Check if we had a previous session that should be invalidated
+          if (lastBrowserSessionId) {
+            logoutManager.logout('/anmelden').catch(console.error);
+            return;
+          }
+          
+          // Create new browser session ID
+          const newSessionId = Date.now().toString() + Math.random().toString(36);
+          sessionStorage.setItem('honorarx-browser-session-id', newSessionId);
+          localStorage.setItem('honorarx-last-browser-session-id', newSessionId);
+        }
       }
 
       // Store session start time
       sessionStartTime.current = Date.now();
-
-      // Check if this is a remember-me session
-      let rememberMe = localStorage.getItem('honorarx-remember-me');
 
       // If localStorage is empty but we have a session, determine remember-me based on session duration
       if (!rememberMe && session) {
@@ -75,32 +130,12 @@ export function SessionManager() {
           'honorarx-session-duration',
           isLongSession ? '24h' : '2h'
         );
-
-        console.log(
-          'SessionManager: localStorage was empty, determined remember-me from session duration:',
-          rememberMe
-        );
       }
 
       isRememberMe.current = rememberMe === 'true';
 
-      console.log('SessionManager: Session started');
-      console.log('SessionManager: Remember Me value:', rememberMe);
-      console.log('SessionManager: Remember Me boolean:', isRememberMe.current);
-      console.log(
-        'SessionManager: All localStorage keys:',
-        Object.keys(localStorage)
-      );
-      console.log(
-        'SessionManager: All sessionStorage keys:',
-        Object.keys(sessionStorage)
-      );
-
       // Set up heartbeat for non-remember-me sessions
       if (rememberMe !== 'true') {
-        console.log(
-          'SessionManager: Setting up browser close detection for non-remember-me session'
-        );
 
         // Store session start time for age checking
         const sessionStartTime = Date.now();
@@ -114,11 +149,6 @@ export function SessionManager() {
         sessionStorage.setItem(
           'honorarx-session-heartbeat',
           Date.now().toString()
-        );
-
-        console.log(
-          'SessionManager: Session start time set:',
-          new Date(sessionStartTime).toLocaleString()
         );
 
         // Set up inactivity tracking
@@ -141,18 +171,34 @@ export function SessionManager() {
         heartbeatInterval.current = setInterval(() => {
           const now = Date.now();
           sessionStorage.setItem('honorarx-session-heartbeat', now.toString());
-          console.log(
-            'SessionManager: Heartbeat updated:',
-            new Date(now).toLocaleTimeString()
-          );
         }, 10000); // Every 10 seconds
-      } else {
-        console.log(
-          'SessionManager: Remember Me session - no browser close detection'
-        );
       }
     }
   }, [session, status, handleActivity, resetInactivityTimer]);
+
+  // Cross-tab sync (BroadcastChannel + storage fallback)
+  useEffect(() => {
+    bcRef.current = new BroadcastChannel('honorarx-auth');
+    bcRef.current.onmessage = (e) => {
+      if (e?.data === 'logout') {
+        logoutManager.logout('/anmelden').catch(console.error);
+      }
+    };
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'honorarx-logout' && e.newValue === '1') {
+        logoutManager.logout('/anmelden').catch(console.error);
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      try {
+        bcRef.current?.close();
+      } catch {}
+      window.removeEventListener('storage', onStorage);
+    };
+  }, []);
 
   // Check if session should be invalidated on page load
   useEffect(() => {
@@ -162,89 +208,76 @@ export function SessionManager() {
         logoutManager.isLogoutInProgress() ||
         logoutManager.isLogoutFlagSet()
       ) {
-        console.log('SessionManager: Logout in progress, skipping validation');
         return;
       }
 
       const rememberMe = localStorage.getItem('honorarx-remember-me');
 
-      console.log('SessionManager: Checking session validity on page load');
-      console.log('SessionManager: Remember Me value:', rememberMe);
-
       // For non-remember-me sessions, check if we should invalidate
       if (rememberMe !== 'true') {
-        // Check if this is a fresh page load (no sessionStorage from previous session)
-        const sessionActive = sessionStorage.getItem('honorarx-session-active');
-        const lastHeartbeat = sessionStorage.getItem(
-          'honorarx-session-heartbeat'
-        );
-        const pageLoadTime = sessionStorage.getItem('honorarx-page-load-time');
-
-        console.log('SessionManager: Session active flag:', sessionActive);
-        console.log('SessionManager: Last heartbeat:', lastHeartbeat);
-        console.log('SessionManager: Page load time:', pageLoadTime);
-
-        // Check if this is a fresh browser session by checking session age
+        const currentTime = Date.now();
+        
+        // Check browser session ID
+        const browserSessionId = sessionStorage.getItem('honorarx-browser-session-id');
+        const lastBrowserSessionId = localStorage.getItem('honorarx-last-browser-session-id');
+        
+        // If browser session IDs don't match, browser was closed
+        if (!browserSessionId || browserSessionId !== lastBrowserSessionId) {
+          try {
+            bcRef.current?.postMessage('logout');
+            localStorage.setItem('honorarx-logout', '1');
+            setTimeout(() => localStorage.removeItem('honorarx-logout'), 2000);
+          } catch {}
+          logoutManager.logout('/anmelden').catch(console.error);
+          return;
+        }
+        
+        // Check session start time
         const sessionStartTime = sessionStorage.getItem(
           'honorarx-session-start-time'
         );
-        const currentTime = Date.now();
 
-        console.log('SessionManager: Session start time:', sessionStartTime);
-        console.log('SessionManager: Current time:', currentTime);
+        // Check last activity time for inactivity timeout
+        const lastActivity = sessionStorage.getItem('honorarx-last-activity');
+        if (lastActivity) {
+          const inactivityDuration = currentTime - parseInt(lastActivity);
+          const maxInactivity = 15 * 60 * 1000; // 15 minutes
+          
+          if (inactivityDuration > maxInactivity) {
+            try {
+              bcRef.current?.postMessage('logout');
+              localStorage.setItem('honorarx-logout', '1');
+              setTimeout(() => localStorage.removeItem('honorarx-logout'), 2000);
+            } catch {}
+            logoutManager.logout('/anmelden').catch(console.error);
+            return;
+          }
+        }
 
-        // If no session start time, this is a fresh session
+        // Additional validation: check if session start time exists
         if (!sessionStartTime) {
-          console.log(
-            'SessionManager: Fresh browser session detected, logging out'
-          );
+          try {
+            bcRef.current?.postMessage('logout');
+            localStorage.setItem('honorarx-logout', '1');
+            setTimeout(() => localStorage.removeItem('honorarx-logout'), 2000);
+          } catch {}
           logoutManager.logout('/anmelden').catch(console.error);
           return;
         }
 
         // Check if session is too old (more than 2 hours)
         const sessionAge = currentTime - parseInt(sessionStartTime);
-        const maxSessionAge = 2 * 60 * 60 * 1000; // 2 hours for production
-
-        console.log('SessionManager: Session age:', sessionAge, 'ms');
-        console.log('SessionManager: Max session age:', maxSessionAge, 'ms');
+        const maxSessionAge = 2 * 60 * 60 * 1000; // 2 hours maximum
 
         if (sessionAge > maxSessionAge) {
-          console.log('SessionManager: Session too old, logging out');
+          try {
+            bcRef.current?.postMessage('logout');
+            localStorage.setItem('honorarx-logout', '1');
+            setTimeout(() => localStorage.removeItem('honorarx-logout'), 2000);
+          } catch {}
           logoutManager.logout('/anmelden').catch(console.error);
           return;
         }
-
-        // If no active session flag or heartbeat is too old, log out
-        if (!sessionActive || !lastHeartbeat) {
-          console.log(
-            'SessionManager: No active session flag or heartbeat, logging out'
-          );
-          logoutManager.logout('/anmelden').catch(console.error);
-          return;
-        }
-
-        const heartbeatAge = Date.now() - parseInt(lastHeartbeat);
-        const maxHeartbeatAge = 30 * 1000; // 30 seconds - much more aggressive
-
-        console.log('SessionManager: Heartbeat age:', heartbeatAge, 'ms');
-        console.log(
-          'SessionManager: Max heartbeat age:',
-          maxHeartbeatAge,
-          'ms'
-        );
-
-        if (heartbeatAge > maxHeartbeatAge) {
-          console.log('SessionManager: Heartbeat too old, logging out');
-          logoutManager.logout('/anmelden').catch(console.error);
-          return;
-        }
-
-        console.log('SessionManager: Session is valid, continuing...');
-      } else {
-        console.log(
-          'SessionManager: Remember Me session - skipping validation'
-        );
       }
     }
   }, [session, status]);
@@ -255,18 +288,9 @@ export function SessionManager() {
 
     const rememberMe = localStorage.getItem('honorarx-remember-me');
 
-    console.log('SessionManager: Setting up browser close detection');
-    console.log('SessionManager: Remember Me value:', rememberMe);
-
     // If user didn't choose "Remember Me", set up browser close detection
     if (rememberMe !== 'true') {
-      console.log(
-        'SessionManager: Setting up beforeunload listener for non-remember-me session'
-      );
       const handleBeforeUnload = () => {
-        console.log(
-          'SessionManager: Browser closing, invalidating session for non-remember-me user'
-        );
 
         // Clear session flags
         sessionStorage.removeItem('honorarx-session-active');
@@ -301,14 +325,35 @@ export function SessionManager() {
               // Ignore errors during page unload
             });
           }
-        } catch (error) {
-          console.warn('Could not clear storage:', error);
+        } catch {
+          // Ignore errors during page unload
         }
       };
 
+      const handlePageHide = () => {
+        /* mirror your beforeunload cleanup */
+      };
+      const handleVisibility = () => {
+        if (document.visibilityState === 'hidden') handlePageHide();
+      };
+      const handleFreeze = () => handlePageHide();
+
       window.addEventListener('beforeunload', handleBeforeUnload);
+      window.addEventListener('pagehide', handlePageHide);
+      document.addEventListener('visibilitychange', handleVisibility);
+      document.addEventListener?.(
+        'freeze',
+        handleFreeze as EventListener
+      );
+
       return () => {
         window.removeEventListener('beforeunload', handleBeforeUnload);
+        window.removeEventListener('pagehide', handlePageHide);
+        document.removeEventListener('visibilitychange', handleVisibility);
+        document.removeEventListener?.(
+          'freeze',
+          handleFreeze as EventListener
+        );
         if (heartbeatInterval.current) {
           clearInterval(heartbeatInterval.current);
         }
@@ -329,10 +374,6 @@ export function SessionManager() {
           document.removeEventListener(event, handleActivity, true);
         });
       };
-    } else {
-      console.log(
-        'SessionManager: Remember Me session - no browser close detection needed'
-      );
     }
   }, [session, status, handleActivity]);
 
@@ -349,9 +390,14 @@ export function SessionManager() {
 
           // If session has been active for more than 2 hours, log out
           if (sessionDuration > maxSessionDuration) {
-            console.log(
-              'SessionManager: Session expired (2h limit), logging out'
-            );
+            try {
+              bcRef.current?.postMessage('logout');
+              localStorage.setItem('honorarx-logout', '1');
+              setTimeout(
+                () => localStorage.removeItem('honorarx-logout'),
+                2000
+              );
+            } catch {}
             logoutManager.logout('/anmelden').catch(console.error);
           }
         }
@@ -365,5 +411,15 @@ export function SessionManager() {
     return () => clearInterval(interval);
   }, [session, status]);
 
-  return null;
+  return (
+    <>
+      {showWarning && (
+        <InactivityWarning
+          secondsRemaining={warningSeconds}
+          onStayLoggedIn={handleStayLoggedIn}
+          onLogout={handleLogout}
+        />
+      )}
+    </>
+  );
 }

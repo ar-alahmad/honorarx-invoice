@@ -7,9 +7,10 @@ import {
   createSuccessResponse,
   handleValidationError,
   handleServerError,
-  withErrorHandler,
 } from '@/lib/error-handler';
 import { z } from 'zod';
+
+export const runtime = 'nodejs';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),

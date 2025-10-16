@@ -12,6 +12,8 @@ import { Resend } from 'resend';
 import { z } from 'zod';
 import crypto from 'crypto';
 
+export const runtime = 'nodejs';
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const resetPasswordSchema = z.object({

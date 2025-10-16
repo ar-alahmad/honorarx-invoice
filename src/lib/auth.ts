@@ -1,7 +1,24 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import { cookies } from 'next/headers';
 import { db } from './db';
 import { verifyPassword } from './encryption';
+import type { JWT } from 'next-auth/jwt';
+import type { Session, User } from 'next-auth';
+
+interface ExtendedToken extends JWT {
+  rememberMe?: boolean;
+  maxAge?: number;
+  exp?: number;
+}
+
+interface ExtendedSession extends Session {
+  rememberMe?: boolean;
+}
+
+interface ExtendedUser extends User {
+  rememberMe?: boolean;
+}
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   debug: process.env.NODE_ENV === 'development', // Only debug in development
@@ -63,66 +80,78 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 2 * 60 * 60, // 2 hours default (will be overridden by JWT callback)
+    maxAge: 30 * 24 * 60 * 60, // 30 days max (for remember-me sessions)
     updateAge: 5 * 60, // 5 minutes in seconds
   },
   jwt: {
-    maxAge: 2 * 60 * 60, // 2 hours default (will be overridden by JWT callback)
+    maxAge: 30 * 24 * 60 * 60, // 30 days max (for remember-me sessions)
   },
   callbacks: {
     async jwt({ token, user, trigger }) {
-      if (user) {
-        token.id = user.id;
-        token.iat = Math.floor(Date.now() / 1000);
-        token.rememberMe = (user as { rememberMe?: boolean }).rememberMe;
+      // Server-side truth: httpOnly cookie set by /api/auth/remember-me
+      const cookieStore = await cookies();
+      const rememberCookie =
+        cookieStore.get('honorarx-remember-me')?.value === 'true';
 
-        // Set session duration based on remember me preference
-        if (token.rememberMe) {
-          token.maxAge = 24 * 60 * 60; // 24 hours for remember me
-          token.exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // Set explicit expiry
-        } else {
-          token.maxAge = 2 * 60 * 60; // 2 hours for regular sessions
-          token.exp = Math.floor(Date.now() / 1000) + 2 * 60 * 60; // Set explicit expiry
-        }
+      // Persist the flag on the token so session() can read it
+      const extendedToken = token as ExtendedToken;
+      const extendedUser = user as ExtendedUser | undefined;
+      
+      extendedToken.rememberMe =
+        rememberCookie ||
+        extendedToken.rememberMe ||
+        extendedUser?.rememberMe ||
+        false;
+
+      // Set session expiry based on remember-me
+      const now = Math.floor(Date.now() / 1000);
+      if (extendedToken.rememberMe) {
+        // Remember me: 30 days - stays logged in until manual logout
+        extendedToken.maxAge = 30 * 24 * 60 * 60;
+        extendedToken.exp = now + 30 * 24 * 60 * 60;
+      } else {
+        // No remember me: 2 hours max, but client-side will handle browser close + 15min inactivity
+        extendedToken.maxAge = 2 * 60 * 60;
+        extendedToken.exp = now + 2 * 60 * 60;
       }
 
-      // Handle session refresh
       if (trigger === 'update') {
-        token.iat = Math.floor(Date.now() / 1000);
-        // Update expiry time on refresh
-        if (token.rememberMe) {
-          token.exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
-        } else {
-          token.exp = Math.floor(Date.now() / 1000) + 2 * 60 * 60;
-        }
+        const now2 = Math.floor(Date.now() / 1000);
+        extendedToken.exp =
+          now2 + (extendedToken.rememberMe ? 30 * 24 * 60 * 60 : 2 * 60 * 60);
       }
 
       return token;
     },
+
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string;
-        // Pass remember me preference to session for client-side use
-        (session as any).rememberMe = token.rememberMe;
+      const extendedSession = session as ExtendedSession;
+      const extendedToken = token as ExtendedToken;
+      extendedSession.rememberMe = Boolean(extendedToken.rememberMe);
+      
+      // Add user ID to session
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
       }
-      return session;
+      
+      return extendedSession;
     },
   },
   pages: {
     signIn: '/anmelden',
   },
   events: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user }) {
       if (process.env.NODE_ENV === 'development') {
         console.log('NextAuth signIn event triggered for user:', user?.id);
       }
     },
-    async signOut({ token }) {
+    async signOut() {
       if (process.env.NODE_ENV === 'development') {
-        console.log('NextAuth signOut event triggered for user:', token?.id);
+        console.log('NextAuth signOut event triggered');
       }
     },
-    async session({ session, token }) {
+    async session({ session }) {
       if (process.env.NODE_ENV === 'development') {
         console.log(
           'NextAuth session event triggered for user:',

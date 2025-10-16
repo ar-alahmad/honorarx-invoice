@@ -1,86 +1,47 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { auth } from '@/lib/auth';
 
 /**
- * Middleware for route protection and authentication
- * Handles protected routes, redirects, and security headers
+ * Middleware for route protection using auth() (reliable)
  */
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const session = await auth();
 
-  // Get session token from cookies
-  const sessionToken =
-    request.cookies.get('next-auth.session-token') ||
-    request.cookies.get('__Secure-next-auth.session-token');
-
-  const isAuthenticated = !!sessionToken;
-
-  // Define protected routes
-  const protectedRoutes = [
-    '/dashboard',
-    '/rechnung-erstellen',
-    '/rechnungen',
-    '/profil',
-    '/api/users',
+  const PROTECTED = [
+    /^\/dashboard/,
+    /^\/rechnung-erstellen/,
+    /^\/rechnungen/,
+    /^\/profil/,
+    /^\/api\/users/,
   ];
+  const AUTH_PAGES = [/^\/anmelden$/, /^\/registrieren$/];
 
-  // Define auth routes (redirect if already authenticated)
-  const authRoutes = [
-    '/anmelden',
-    '/registrieren',
-    '/forgot-password',
-    '/passwort-zuruecksetzen',
-    '/email-verification',
-  ];
+  const isProtected = PROTECTED.some((re) => re.test(pathname));
+  const isAuthPage = AUTH_PAGES.some((re) => re.test(pathname));
 
-  // Check if current path is protected
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
-
-  // Check if current path is an auth route
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
-
-  // Redirect unauthenticated users from protected routes
-  if (isProtectedRoute && !isAuthenticated) {
-    const loginUrl = new URL('/anmelden', request.url);
-    loginUrl.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(loginUrl);
+  if (isProtected && !session?.user) {
+    const url = req.nextUrl.clone();
+    url.pathname = '/anmelden';
+    url.searchParams.set('next', pathname);
+    return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users away from auth pages
-  if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  if (isAuthPage && session?.user) {
+    const url = req.nextUrl.clone();
+    url.pathname = '/dashboard';
+    return NextResponse.redirect(url);
   }
 
-  // Add security headers
-  const response = NextResponse.next();
-
-  // Security headers
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-
-  // CSP header for additional security
-  response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'"
-  );
-
-  return response;
+  const res = NextResponse.next();
+  res.headers.set('X-Frame-Options', 'DENY');
+  res.headers.set('X-Content-Type-Options', 'nosniff');
+  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.headers.set('X-XSS-Protection', '1; mode=block');
+  return res;
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api/auth (NextAuth.js routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|public).*)',
-  ],
+  matcher: ['/((?!_next|static|favicon.ico|api/auth).*)'],
 };

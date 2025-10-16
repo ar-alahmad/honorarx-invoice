@@ -32,13 +32,6 @@ export function NavBar() {
   const userFamilyName =
     session?.user?.name?.split(' ').pop()?.toUpperCase() || 'USER';
 
-  console.log(
-    'NavBar: Component rendered, isLoggedIn:',
-    isLoggedIn,
-    'userFamilyName:',
-    userFamilyName
-  );
-
   const navItems = [
     {
       name: 'HOME',
