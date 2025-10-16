@@ -11,7 +11,6 @@ import {
   Mail,
   Shield,
   FileCheck,
-  Settings,
   LogOut,
 } from 'lucide-react';
 import { DropdownNavBar } from '@/components/ui/dropdown-navbar';
@@ -102,11 +101,6 @@ export function NavBar() {
               name: 'Dashboard',
               url: '/dashboard',
               icon: User,
-            },
-            {
-              name: 'Einstellungen',
-              url: '/einstellungen',
-              icon: Settings,
             },
             {
               name: 'Abmelden',

@@ -241,221 +241,226 @@ export function DropdownNavBar({
         className
       )}>
       <div className='flex items-center gap-2 bg-background/5 border border-border backdrop-blur-lg py-1 px-1 rounded-full shadow-lg'>
-        {items.map((item) => {
+        {items.map((item, index) => {
           const Icon = item.icon;
           const isActive = activeTab === item.name;
           const hasDropdown = item.dropdown && item.dropdown.length > 0;
           const isDropdownOpen = activeDropdown === item.name;
           const isHovered = hoveredDropdown === item.name;
 
+          // Add extra spacing between INFO and USER when RECHNUNG is hidden (3 items total)
+          const needsExtraSpacing = items.length === 3 && index === 1; // INFO is at index 1 when RECHNUNG is hidden
+
           return (
-            <div
-              key={item.name}
-              className='relative'
-              data-dropdown
-              onMouseEnter={() => {
-                // Only handle hover on desktop (not mobile)
-                if (hasDropdown && window.innerWidth >= 768) {
-                  setHoveredDropdown(item.name);
-                }
-              }}
-              onMouseLeave={() => {
-                // Only handle hover on desktop (not mobile)
-                if (hasDropdown && window.innerWidth >= 768) {
-                  setHoveredDropdown(null);
-                  // Only close if it wasn't opened by click
-                  if (clickOpenedDropdown !== item.name) {
-                    setActiveDropdown(null);
+            <React.Fragment key={item.name}>
+              {needsExtraSpacing && <div className='w-4' />}
+              <div
+                className='relative'
+                data-dropdown
+                onMouseEnter={() => {
+                  // Only handle hover on desktop (not mobile)
+                  if (hasDropdown && window.innerWidth >= 768) {
+                    setHoveredDropdown(item.name);
                   }
-                }
-              }}>
-              {/* Main Navigation Item */}
-              {hasDropdown ? (
-                <div
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleDropdownToggle(item.name);
-                  }}
-                  className={cn(
-                    'relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors flex items-center gap-2',
-                    'text-foreground/80 hover:text-primary',
-                    isActive && 'bg-muted text-primary'
-                  )}>
-                  <span className='hidden md:inline'>{item.name}</span>
-                  <span className='md:hidden'>
-                    {item.name === 'USER' && isLoggedIn ? (
-                      <span className='w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold'>
-                        {userFamilyName.charAt(0)}
-                      </span>
-                    ) : (
-                      <Icon size={18} strokeWidth={2.5} />
-                    )}
-                  </span>
-
-                  {/* Dropdown Arrow */}
-                  <ChevronDown
-                    size={14}
+                }}
+                onMouseLeave={() => {
+                  // Only handle hover on desktop (not mobile)
+                  if (hasDropdown && window.innerWidth >= 768) {
+                    setHoveredDropdown(null);
+                    // Only close if it wasn't opened by click
+                    if (clickOpenedDropdown !== item.name) {
+                      setActiveDropdown(null);
+                    }
+                  }
+                }}>
+                {/* Main Navigation Item */}
+                {hasDropdown ? (
+                  <div
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDropdownToggle(item.name);
+                    }}
                     className={cn(
-                      'transition-transform duration-200',
-                      (isDropdownOpen || isHovered) && 'rotate-180'
-                    )}
-                  />
-
-                  {/* Active State Indicator */}
-                  {isActive && (
-                    <motion.div
-                      layoutId='lamp'
-                      className='absolute inset-0 w-full bg-primary/5 rounded-full -z-10'
-                      initial={false}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 300,
-                        damping: 30,
-                      }}>
-                      <div className='absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-t-full'>
-                        <div className='absolute w-12 h-6 bg-primary/20 rounded-full blur-md -top-2 -left-2' />
-                        <div className='absolute w-8 h-6 bg-primary/20 rounded-full blur-md -top-1' />
-                        <div className='absolute w-4 h-4 bg-primary/20 rounded-full blur-sm top-0 left-2' />
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  href={item.url}
-                  onClick={() => handleItemClick(item.name)}
-                  className={cn(
-                    'relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors flex items-center gap-2',
-                    'text-foreground/80 hover:text-primary',
-                    isActive && 'bg-muted text-primary'
-                  )}>
-                  <span className='hidden md:inline'>{item.name}</span>
-                  <span className='md:hidden'>
-                    {item.name === 'USER' && isLoggedIn ? (
-                      <span className='w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold'>
-                        {userFamilyName.charAt(0)}
-                      </span>
-                    ) : (
-                      <Icon size={18} strokeWidth={2.5} />
-                    )}
-                  </span>
-
-                  {/* Active State Indicator */}
-                  {isActive && (
-                    <motion.div
-                      layoutId='lamp'
-                      className='absolute inset-0 w-full bg-primary/5 rounded-full -z-10'
-                      initial={false}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 300,
-                        damping: 30,
-                      }}>
-                      <div className='absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-t-full'>
-                        <div className='absolute w-12 h-6 bg-primary/20 rounded-full blur-md -top-2 -left-2' />
-                        <div className='absolute w-8 h-6 bg-primary/20 rounded-full blur-md -top-1' />
-                        <div className='absolute w-4 h-4 bg-primary/20 rounded-full blur-sm top-0 left-2' />
-                      </div>
-                    </motion.div>
-                  )}
-                </Link>
-              )}
-
-              {/* Dropdown Menu */}
-              <AnimatePresence>
-                {hasDropdown &&
-                  (isDropdownOpen ||
-                    (isHovered && clickOpenedDropdown !== item.name)) && (
-                    <motion.div
-                      ref={(el) => {
-                        dropdownRefs.current[item.name] = el;
-                      }}
-                      variants={dropdownVariants}
-                      initial='hidden'
-                      animate='visible'
-                      exit='hidden'
-                      className={cn(
-                        'absolute top-full mt-2 bg-background/95 border border-border backdrop-blur-lg rounded-xl shadow-xl overflow-hidden',
-                        // Responsive width: narrower for USER dropdown on mobile only
-                        item.name === 'USER' ? 'w-40 md:w-48' : 'w-48',
-                        // Smart positioning based on calculated position
-                        dropdownPosition[item.name] === 'left' && 'left-0',
-                        dropdownPosition[item.name] === 'center' &&
-                          'left-1/2 -translate-x-1/2',
-                        dropdownPosition[item.name] === 'right' && 'right-0',
-                        // Fallback to center if no position calculated yet
-                        !dropdownPosition[item.name] &&
-                          'left-1/2 -translate-x-1/2'
+                      'relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors flex items-center gap-2',
+                      'text-foreground/80 hover:text-primary',
+                      isActive && 'bg-muted text-primary'
+                    )}>
+                    <span className='hidden md:inline'>{item.name}</span>
+                    <span className='md:hidden'>
+                      {item.name === 'USER' && isLoggedIn ? (
+                        <span className='w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold'>
+                          {userFamilyName.charAt(0)}
+                        </span>
+                      ) : (
+                        <Icon size={18} strokeWidth={2.5} />
                       )}
-                      style={{ zIndex: 9999 }}>
-                      {/* Dropdown Items */}
-                      <div className='py-2'>
-                        {item.dropdown?.map((dropdownItem) => {
-                          const isActiveDropdownItem =
-                            activeDropdownItem === dropdownItem.name;
-                          return dropdownItem.onClick ? (
-                            <button
-                              key={dropdownItem.name}
-                              onClick={(e) => {
-                                console.log(
-                                  'DropdownNavBar: Button clicked for:',
-                                  dropdownItem.name
-                                );
-                                // Immediately close dropdown and set states before action
-                                setActiveTab(item.name);
-                                setActiveDropdown(null);
-                                setClickOpenedDropdown(null);
-                                setHoveredDropdown(null);
-                                setActiveDropdownItem(dropdownItem.name);
-                                console.log(
-                                  'DropdownNavBar: About to call onClick for:',
-                                  dropdownItem.name
-                                );
-                                dropdownItem.onClick?.(e);
-                                console.log(
-                                  'DropdownNavBar: onClick called for:',
-                                  dropdownItem.name
-                                );
-                              }}
-                              className={cn(
-                                'flex items-center px-4 py-2 text-sm transition-colors group relative w-full text-left',
-                                isActiveDropdownItem
-                                  ? 'bg-primary/10 text-primary border-r-2 border-primary'
-                                  : 'text-foreground/80 hover:bg-muted/50 hover:text-primary'
-                              )}>
-                              <span className='flex-1'>
-                                {dropdownItem.name}
-                              </span>
-                            </button>
-                          ) : (
-                            <Link
-                              key={dropdownItem.name}
-                              href={dropdownItem.url}
-                              onClick={() => {
-                                // Immediately close dropdown and set states before navigation
-                                setActiveTab(item.name);
-                                setActiveDropdown(null);
-                                setClickOpenedDropdown(null);
-                                setHoveredDropdown(null);
-                                setActiveDropdownItem(dropdownItem.name);
-                              }}
-                              className={cn(
-                                'flex items-center px-4 py-2 text-sm transition-colors group relative',
-                                isActiveDropdownItem
-                                  ? 'bg-primary/10 text-primary border-r-2 border-primary'
-                                  : 'text-foreground/80 hover:bg-muted/50 hover:text-primary'
-                              )}>
-                              <span className='flex-1'>
-                                {dropdownItem.name}
-                              </span>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-              </AnimatePresence>
-            </div>
+                    </span>
+
+                    {/* Dropdown Arrow */}
+                    <ChevronDown
+                      size={14}
+                      className={cn(
+                        'transition-transform duration-200',
+                        (isDropdownOpen || isHovered) && 'rotate-180'
+                      )}
+                    />
+
+                    {/* Active State Indicator */}
+                    {isActive && (
+                      <motion.div
+                        layoutId='lamp'
+                        className='absolute inset-0 w-full bg-primary/5 rounded-full -z-10'
+                        initial={false}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 300,
+                          damping: 30,
+                        }}>
+                        <div className='absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-t-full'>
+                          <div className='absolute w-12 h-6 bg-primary/20 rounded-full blur-md -top-2 -left-2' />
+                          <div className='absolute w-8 h-6 bg-primary/20 rounded-full blur-md -top-1' />
+                          <div className='absolute w-4 h-4 bg-primary/20 rounded-full blur-sm top-0 left-2' />
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    href={item.url}
+                    onClick={() => handleItemClick(item.name)}
+                    className={cn(
+                      'relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors flex items-center gap-2',
+                      'text-foreground/80 hover:text-primary',
+                      isActive && 'bg-muted text-primary'
+                    )}>
+                    <span className='hidden md:inline'>{item.name}</span>
+                    <span className='md:hidden'>
+                      {item.name === 'USER' && isLoggedIn ? (
+                        <span className='w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold'>
+                          {userFamilyName.charAt(0)}
+                        </span>
+                      ) : (
+                        <Icon size={18} strokeWidth={2.5} />
+                      )}
+                    </span>
+
+                    {/* Active State Indicator */}
+                    {isActive && (
+                      <motion.div
+                        layoutId='lamp'
+                        className='absolute inset-0 w-full bg-primary/5 rounded-full -z-10'
+                        initial={false}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 300,
+                          damping: 30,
+                        }}>
+                        <div className='absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-t-full'>
+                          <div className='absolute w-12 h-6 bg-primary/20 rounded-full blur-md -top-2 -left-2' />
+                          <div className='absolute w-8 h-6 bg-primary/20 rounded-full blur-md -top-1' />
+                          <div className='absolute w-4 h-4 bg-primary/20 rounded-full blur-sm top-0 left-2' />
+                        </div>
+                      </motion.div>
+                    )}
+                  </Link>
+                )}
+
+                {/* Dropdown Menu */}
+                <AnimatePresence>
+                  {hasDropdown &&
+                    (isDropdownOpen ||
+                      (isHovered && clickOpenedDropdown !== item.name)) && (
+                      <motion.div
+                        ref={(el) => {
+                          dropdownRefs.current[item.name] = el;
+                        }}
+                        variants={dropdownVariants}
+                        initial='hidden'
+                        animate='visible'
+                        exit='hidden'
+                        className={cn(
+                          'absolute top-full mt-2 bg-background/95 border border-border backdrop-blur-lg rounded-xl shadow-xl overflow-hidden',
+                          // Responsive width: narrower for USER dropdown on mobile only
+                          item.name === 'USER' ? 'w-40 md:w-48' : 'w-48',
+                          // Smart positioning based on calculated position
+                          dropdownPosition[item.name] === 'left' && 'left-0',
+                          dropdownPosition[item.name] === 'center' &&
+                            'left-1/2 -translate-x-1/2',
+                          dropdownPosition[item.name] === 'right' && 'right-0',
+                          // Fallback to center if no position calculated yet
+                          !dropdownPosition[item.name] &&
+                            'left-1/2 -translate-x-1/2'
+                        )}
+                        style={{ zIndex: 9999 }}>
+                        {/* Dropdown Items */}
+                        <div className='py-2'>
+                          {item.dropdown?.map((dropdownItem) => {
+                            const isActiveDropdownItem =
+                              activeDropdownItem === dropdownItem.name;
+                            return dropdownItem.onClick ? (
+                              <button
+                                key={dropdownItem.name}
+                                onClick={(e) => {
+                                  console.log(
+                                    'DropdownNavBar: Button clicked for:',
+                                    dropdownItem.name
+                                  );
+                                  // Immediately close dropdown and set states before action
+                                  setActiveTab(item.name);
+                                  setActiveDropdown(null);
+                                  setClickOpenedDropdown(null);
+                                  setHoveredDropdown(null);
+                                  setActiveDropdownItem(dropdownItem.name);
+                                  console.log(
+                                    'DropdownNavBar: About to call onClick for:',
+                                    dropdownItem.name
+                                  );
+                                  dropdownItem.onClick?.(e);
+                                  console.log(
+                                    'DropdownNavBar: onClick called for:',
+                                    dropdownItem.name
+                                  );
+                                }}
+                                className={cn(
+                                  'flex items-center px-4 py-2 text-sm transition-colors group relative w-full text-left',
+                                  isActiveDropdownItem
+                                    ? 'bg-primary/10 text-primary border-r-2 border-primary'
+                                    : 'text-foreground/80 hover:bg-muted/50 hover:text-primary'
+                                )}>
+                                <span className='flex-1'>
+                                  {dropdownItem.name}
+                                </span>
+                              </button>
+                            ) : (
+                              <Link
+                                key={dropdownItem.name}
+                                href={dropdownItem.url}
+                                onClick={() => {
+                                  // Immediately close dropdown and set states before navigation
+                                  setActiveTab(item.name);
+                                  setActiveDropdown(null);
+                                  setClickOpenedDropdown(null);
+                                  setHoveredDropdown(null);
+                                  setActiveDropdownItem(dropdownItem.name);
+                                }}
+                                className={cn(
+                                  'flex items-center px-4 py-2 text-sm transition-colors group relative',
+                                  isActiveDropdownItem
+                                    ? 'bg-primary/10 text-primary border-r-2 border-primary'
+                                    : 'text-foreground/80 hover:bg-muted/50 hover:text-primary'
+                                )}>
+                                <span className='flex-1'>
+                                  {dropdownItem.name}
+                                </span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                </AnimatePresence>
+              </div>
+            </React.Fragment>
           );
         })}
       </div>
