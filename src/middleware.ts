@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { auth } from '@/lib/auth';
 
+// Use Node.js runtime to support crypto module
+export const runtime = 'nodejs';
+
 /**
  * Middleware for route protection using auth() (reliable)
  */
