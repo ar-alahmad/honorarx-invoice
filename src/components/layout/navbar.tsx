@@ -38,23 +38,28 @@ export function NavBar() {
       url: '/',
       icon: Home,
     },
-    {
-      name: 'RECHNUNG',
-      url: '#',
-      icon: FileText,
-      dropdown: [
-        {
-          name: 'Rechnung erstellen',
-          url: '/rechnung-erstellen',
-          icon: Plus,
-        },
-        {
-          name: 'Rechnungen',
-          url: '/rechnungen',
-          icon: List,
-        },
-      ],
-    },
+    // RECHNUNG menu item - only visible when user is logged in
+    ...(isLoggedIn
+      ? [
+          {
+            name: 'RECHNUNG',
+            url: '#',
+            icon: FileText,
+            dropdown: [
+              {
+                name: 'Rechnung erstellen',
+                url: '/rechnung-erstellen',
+                icon: Plus,
+              },
+              {
+                name: 'Rechnungen',
+                url: '/rechnungen',
+                icon: List,
+              },
+            ],
+          },
+        ]
+      : []),
     {
       name: 'INFO',
       url: '#',
