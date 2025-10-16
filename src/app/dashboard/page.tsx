@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import { secureLogout } from '@/lib/logout';
 import { useRouter } from 'next/navigation';
 import { DynamicBackground, ErrorBoundary } from '@/components/effects';
 import { Button } from '@/components/ui/button';
 import { SessionManager } from '@/components/auth/SessionManager';
+import { SessionExpiryNotification } from '@/components/auth/SessionExpiryNotification';
 import { Leva } from 'leva';
 import {
   User,
@@ -86,6 +88,15 @@ export default function DashboardPage() {
 
   // Redirect if not authenticated
   useEffect(() => {
+    console.log(
+      'Dashboard: Status:',
+      status,
+      'Session:',
+      !!session,
+      'User ID:',
+      session?.user?.id
+    );
+
     if (status === 'unauthenticated') {
       router.push('/anmelden');
       return;
@@ -98,12 +109,28 @@ export default function DashboardPage() {
 
   const fetchUserData = async () => {
     try {
+      console.log('Dashboard: Fetching user data...');
       setIsLoading(true);
       const response = await fetch('/api/users/profile');
+      console.log('Dashboard: Profile response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
-        setProfile(data.user);
-        // TODO: Fetch actual stats from invoices API
+        console.log('Dashboard: Profile data received:', data);
+        console.log('Dashboard: User data:', data.data?.user);
+        console.log('Dashboard: User data type:', typeof data.data?.user);
+        console.log(
+          'Dashboard: User data keys:',
+          data.data?.user ? Object.keys(data.data.user) : 'No user data'
+        );
+
+        if (data.data?.user) {
+          setProfile(data.data.user);
+          console.log('Dashboard: Profile set successfully');
+        } else {
+          console.error('Dashboard: No user data found in response');
+        }
+        // Fetch actual stats from invoices API (placeholder for future implementation)
         // For now, using mock data
         setStats({
           totalInvoices: 12,
@@ -114,9 +141,13 @@ export default function DashboardPage() {
           overdueInvoices: 1,
         });
       } else {
+        console.error('Failed to fetch user profile:', response.status);
+        const errorData = await response.json();
+        console.error('Error details:', errorData);
         setError('Fehler beim Laden der Daten');
       }
-    } catch {
+    } catch (error) {
+      console.error('Error fetching user data:', error);
       setError('Netzwerkfehler beim Laden der Daten');
     } finally {
       setIsLoading(false);
@@ -173,7 +204,7 @@ export default function DashboardPage() {
   };
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/' });
+    await secureLogout('/');
   };
 
   if (status === 'loading' || isLoading) {
@@ -193,7 +224,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!session || !profile) {
+  if (status === 'unauthenticated') {
     return (
       <div className='relative min-h-screen'>
         <ErrorBoundary>
@@ -211,6 +242,63 @@ export default function DashboardPage() {
             <Button onClick={() => router.push('/anmelden')} size='default'>
               Zur Anmeldung
             </Button>
+          </div>
+        </div>
+        <Leva hidden />
+      </div>
+    );
+  }
+
+  // Show loading if profile is not loaded yet but user is authenticated
+  if (status === 'authenticated' && !profile && !isLoading) {
+    console.log(
+      'Dashboard: Showing profile not found - Status:',
+      status,
+      'Profile:',
+      profile,
+      'IsLoading:',
+      isLoading
+    );
+    return (
+      <div className='relative min-h-screen'>
+        <ErrorBoundary>
+          <DynamicBackground />
+        </ErrorBoundary>
+        <div className='relative z-10 min-h-screen flex items-center justify-center'>
+          <div className='text-center'>
+            <AlertCircle className='h-16 w-16 text-yellow-400 mx-auto mb-6' />
+            <h1 className='text-3xl font-bold text-white mb-4'>
+              Profil nicht gefunden
+            </h1>
+            <p className='text-white/70 mb-8 text-lg'>
+              Ihr Benutzerprofil konnte nicht geladen werden.
+            </p>
+            <Button onClick={() => fetchUserData()} size='default'>
+              Erneut versuchen
+            </Button>
+          </div>
+        </div>
+        <Leva hidden />
+      </div>
+    );
+  }
+
+  // Ensure profile exists before rendering dashboard
+  if (!profile) {
+    console.log(
+      'Dashboard: Profile is null/undefined, showing loading spinner'
+    );
+    return (
+      <div className='relative min-h-screen'>
+        <ErrorBoundary>
+          <DynamicBackground />
+        </ErrorBoundary>
+        <div className='relative z-10 min-h-screen flex items-center justify-center'>
+          <div className='flex items-center gap-3'>
+            <Loader2 className='h-8 w-8 animate-spin text-white' />
+            <span className='text-white text-2xl font-medium'>
+              Lade Profil...
+            </span>
           </div>
         </div>
         <Leva hidden />
@@ -830,6 +918,7 @@ export default function DashboardPage() {
 
       <Leva hidden />
       <SessionManager />
+      <SessionExpiryNotification onLogout={handleSignOut} />
     </div>
   );
 }

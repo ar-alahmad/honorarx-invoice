@@ -3,7 +3,9 @@ import Credentials from 'next-auth/providers/credentials';
 import { db } from './db';
 import { verifyPassword } from './encryption';
 
-export const { auth, handlers } = NextAuth({
+export const { auth, handlers, signIn, signOut } = NextAuth({
+  debug: process.env.NODE_ENV === 'development', // Only debug in development
+  trustHost: true, // Critical for NextAuth v5
   providers: [
     Credentials({
       name: 'credentials',
@@ -61,32 +63,29 @@ export const { auth, handlers } = NextAuth({
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 60 * 60, // 1 hour in seconds (shorter default session)
-    updateAge: 15 * 60, // 15 minutes in seconds
+    maxAge: 8 * 60 * 60, // 8 hours default (shorter for security)
+    updateAge: 5 * 60, // 5 minutes in seconds
   },
   jwt: {
-    maxAge: 60 * 60, // 1 hour in seconds (shorter default JWT)
+    maxAge: 8 * 60 * 60, // 8 hours default
   },
   callbacks: {
     async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
-        token.iat = Math.floor(Date.now() / 1000); // Set issued at time
+        token.iat = Math.floor(Date.now() / 1000);
+        token.rememberMe = (user as { rememberMe?: boolean }).rememberMe;
 
-        // Check if this is a sign-in with remember me
-        const rememberMe = (user as { rememberMe?: boolean }).rememberMe;
-        if (rememberMe) {
-          // Extended session for remember me (24 hours)
-          token.maxAge = 24 * 60 * 60;
+        // Set session duration based on remember me preference
+        if (token.rememberMe) {
+          token.maxAge = 24 * 60 * 60; // 24 hours for remember me
         } else {
-          // Short session for normal login (1 hour)
-          token.maxAge = 60 * 60;
+          token.maxAge = 2 * 60 * 60; // 2 hours for regular sessions
         }
       }
 
       // Handle session refresh
       if (trigger === 'update') {
-        // Update the issued at time when session is refreshed
         token.iat = Math.floor(Date.now() / 1000);
       }
 
@@ -95,13 +94,8 @@ export const { auth, handlers } = NextAuth({
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string;
-        // Check if token is expired
-        const now = Math.floor(Date.now() / 1000);
-        if (token.iat && now - token.iat > 24 * 60 * 60) {
-          // Instead of returning null, we'll handle this in the client-side SessionManager
-          // This ensures the session callback always returns a valid session object
-          throw new Error('Session expired');
-        }
+        // Pass remember me preference to session for client-side use
+        (session as any).rememberMe = token.rememberMe;
       }
       return session;
     },
@@ -109,16 +103,63 @@ export const { auth, handlers } = NextAuth({
   pages: {
     signIn: '/anmelden',
   },
+  events: {
+    async signIn({ user, account, profile }) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('NextAuth signIn event triggered for user:', user?.id);
+      }
+    },
+    async signOut({ token }) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('NextAuth signOut event triggered for user:', token?.id);
+      }
+    },
+    async session({ session, token }) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(
+          'NextAuth session event triggered for user:',
+          session?.user?.id
+        );
+      }
+    },
+  },
   secret: process.env.NEXTAUTH_SECRET,
+  useSecureCookies: process.env.NODE_ENV === 'production',
   cookies: {
     sessionToken: {
-      name: `next-auth.session-token`,
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Secure-next-auth.session-token'
+          : 'next-auth.session-token',
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60, // 24 hours
+      },
+    },
+    callbackUrl: {
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Secure-next-auth.callback-url'
+          : 'next-auth.callback-url',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+    csrfToken: {
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Host-next-auth.csrf-token'
+          : 'next-auth.csrf-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
       },
     },
   },

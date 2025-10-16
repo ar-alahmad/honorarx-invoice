@@ -19,14 +19,14 @@ import { useSession } from 'next-auth/react';
 import { secureLogout } from '@/lib/logout';
 
 /**
- * NavBarDemo - Professional navigation component for HonorarX Invoice
+ * NavBar - Professional navigation component for HonorarX Invoice
  * Features clean dropdown menus for organized navigation:
  * - HOME: Dashboard/Overview
  * - RECHNUNG: Invoice management with dropdown (Create, List)
  * - INFO: Company information with dropdown (About, Contact, Legal)
  * - USER: User account with authentication-aware dropdown
  */
-export function NavBarDemo() {
+export function NavBar() {
   const { data: session } = useSession();
   const isLoggedIn = !!session;
   const userFamilyName =

@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
+import { authRateLimit } from '@/lib/rate-limit';
+import {
+  createSuccessResponse,
+  handleValidationError,
+  handleServerError,
+} from '@/lib/error-handler';
+import { sanitizeEmail } from '@/lib/sanitize';
 import { Resend } from 'resend';
 import crypto from 'crypto';
 
@@ -20,12 +27,21 @@ const confirmVerificationSchema = z.object({
 
 // Send verification email
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = authRateLimit(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const body = await request.json();
     const { email } = verifyEmailSchema.parse(body);
 
+    // Sanitize email input
+    const sanitizedEmail = sanitizeEmail(email);
+
     const user = await db.user.findUnique({
-      where: { email },
+      where: { email: sanitizedEmail },
     });
 
     if (!user) {

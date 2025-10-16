@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { decryptUserData, encryptUserData } from '@/lib/encryption-middleware';
+import { generalRateLimit } from '@/lib/rate-limit';
+import {
+  createSuccessResponse,
+  handleValidationError,
+  handleServerError,
+  handleAuthError,
+} from '@/lib/error-handler';
+import { sanitizeFormData } from '@/lib/sanitize';
 import { z } from 'zod';
 
 const updateProfileSchema = z.object({
@@ -22,7 +30,7 @@ export async function GET() {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return handleAuthError('Authentication required');
     }
 
     const user = await db.user.findUnique({
@@ -53,33 +61,37 @@ export async function GET() {
     // Decrypt sensitive data before returning
     const decryptedUser = decryptUserData(user);
 
-    return NextResponse.json({ user: decryptedUser });
-  } catch (error) {
-    console.error('Profile fetch error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return createSuccessResponse(
+      { user: decryptedUser },
+      'Profile retrieved successfully'
     );
+  } catch (error) {
+    return handleServerError(error);
   }
 }
 
 export async function PUT(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = generalRateLimit(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return handleAuthError('Authentication required');
     }
 
     const body = await request.json();
-    console.log('Profile update request body:', body);
-
     const validatedData = updateProfileSchema.parse(body);
-    console.log('Validated data:', validatedData);
+
+    // Sanitize input data
+    const sanitizedData = sanitizeFormData(validatedData);
 
     // Encrypt sensitive data before updating
-    const encryptedData = encryptUserData(validatedData);
-    console.log('Encrypted data:', encryptedData);
+    const encryptedData = encryptUserData(sanitizedData);
 
     const updatedUser = await db.user.update({
       where: { id: session.user.id },
@@ -104,27 +116,15 @@ export async function PUT(request: NextRequest) {
     // Decrypt sensitive data before returning
     const decryptedUser = decryptUserData(updatedUser);
 
-    return NextResponse.json({
-      message: 'Profile updated successfully',
-      user: decryptedUser,
-    });
+    return createSuccessResponse(
+      { user: decryptedUser },
+      'Profile updated successfully'
+    );
   } catch (error) {
-    console.error('Profile update error:', error);
-
     if (error instanceof z.ZodError) {
-      console.error('Validation error details:', error.issues);
-      return NextResponse.json(
-        { error: 'Validation error', details: error.issues },
-        { status: 400 }
-      );
+      return handleValidationError(error);
     }
 
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return handleServerError(error);
   }
 }

@@ -1,7 +1,14 @@
 import crypto from 'crypto';
 
-const ENCRYPTION_KEY =
-  process.env.ENCRYPTION_KEY || 'default-key-change-in-production';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+if (!ENCRYPTION_KEY) {
+  throw new Error('ENCRYPTION_KEY environment variable is required');
+}
+
+if (ENCRYPTION_KEY.length < 32) {
+  throw new Error('ENCRYPTION_KEY must be at least 32 characters long');
+}
 const ALGORITHM = 'aes-256-cbc';
 
 // Ensure encryption key is 32 characters
@@ -11,7 +18,7 @@ const getEncryptionKey = (): Buffer => {
 
 export const encrypt = (text: string): string => {
   if (!text) return text; // Don't encrypt empty strings
-  
+
   const key = getEncryptionKey();
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
@@ -24,7 +31,7 @@ export const encrypt = (text: string): string => {
 
 export const decrypt = (encryptedText: string): string => {
   if (!encryptedText) return encryptedText; // Don't decrypt empty strings
-  
+
   try {
     const key = getEncryptionKey();
     const textParts = encryptedText.split(':');

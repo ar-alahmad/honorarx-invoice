@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { hashPassword } from '@/lib/encryption';
 import { encryptUserData } from '@/lib/encryption-middleware';
+import { authRateLimit } from '@/lib/rate-limit';
+import {
+  createSuccessResponse,
+  handleValidationError,
+  handleServerError,
+  withErrorHandler,
+} from '@/lib/error-handler';
 import { z } from 'zod';
 
 const registerSchema = z.object({
@@ -13,6 +20,12 @@ const registerSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = authRateLimit(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const body = await request.json();
     const validatedData = registerSchema.parse(body);
@@ -24,7 +37,11 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User with this email already exists' },
+        {
+          error: 'User with this email already exists',
+          code: 'USER_EXISTS',
+          timestamp: new Date().toISOString(),
+        },
         { status: 400 }
       );
     }
@@ -75,9 +92,8 @@ export async function POST(request: NextRequest) {
       console.error('Error sending verification email:', error);
     }
 
-    return NextResponse.json(
+    return createSuccessResponse(
       {
-        message: 'User created successfully',
         user: {
           id: user.id,
           email: user.email,
@@ -86,20 +102,14 @@ export async function POST(request: NextRequest) {
           company: user.company,
         },
       },
-      { status: 201 }
+      'User created successfully',
+      201
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.issues },
-        { status: 400 }
-      );
+      return handleValidationError(error);
     }
 
-    console.error('Registration error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleServerError(error);
   }
 }

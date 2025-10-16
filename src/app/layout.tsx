@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import '../styles/globals.css';
-import { NavbarWrapper } from '@/components/layout';
+import { NavbarClient } from '@/components/layout';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { SessionManager } from '@/components/auth/SessionManager';
 
@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   title: 'HonorarX Invoice - Professional Invoice Management',
   description:
     'Professional invoice management system with stunning visual experiences. Create, manage, and track invoices with ease.',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
@@ -33,7 +36,7 @@ export default function RootLayout({
         <SessionProvider>
           <SessionManager />
           {/* Navigation Bar - appears on all pages */}
-          <NavbarWrapper />
+          <NavbarClient />
           {children}
         </SessionProvider>
       </body>

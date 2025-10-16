@@ -3,5 +3,5 @@
  * Components responsible for overall page layout and structure
  */
 
-export { NavBarDemo } from './navbar-demo';
-export { NavbarWrapper } from './navbar-wrapper';
+export { NavBar } from './navbar';
+export { NavbarClient } from './navbar-client';

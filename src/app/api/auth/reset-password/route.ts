@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { hashPassword } from '@/lib/encryption';
+import { authRateLimit } from '@/lib/rate-limit';
+import {
+  createSuccessResponse,
+  handleValidationError,
+  handleServerError,
+} from '@/lib/error-handler';
+import { sanitizeEmail } from '@/lib/sanitize';
 import { Resend } from 'resend';
 import { z } from 'zod';
 import crypto from 'crypto';
@@ -18,23 +25,33 @@ const updatePasswordSchema = z.object({
 
 // Request password reset
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = authRateLimit(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const body = await request.json();
     const { email } = resetPasswordSchema.parse(body);
 
+    // Sanitize email input
+    const sanitizedEmail = sanitizeEmail(email);
+
     // Check if user exists
     const user = await db.user.findUnique({
-      where: { email },
+      where: { email: sanitizedEmail },
     });
 
     if (!user) {
       // Don't reveal if user exists or not for security
-      return NextResponse.json(
+      return createSuccessResponse(
         {
           message:
             'If an account with that email exists, we have sent a password reset link.',
         },
-        { status: 200 }
+        'Password reset request processed',
+        200
       );
     }
 
@@ -124,31 +141,31 @@ export async function POST(request: NextRequest) {
 
     console.log('Email sent successfully:', emailResult);
 
-    return NextResponse.json(
+    return createSuccessResponse(
       {
         message:
           'If an account with that email exists, we have sent a password reset link.',
       },
-      { status: 200 }
+      'Password reset email sent',
+      200
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.issues },
-        { status: 400 }
-      );
+      return handleValidationError(error);
     }
 
-    console.error('Password reset error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleServerError(error);
   }
 }
 
 // Update password with token
 export async function PUT(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = authRateLimit(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const body = await request.json();
     const { token, newPassword } = updatePasswordSchema.parse(body);
@@ -165,7 +182,11 @@ export async function PUT(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid or expired reset token' },
+        {
+          error: 'Invalid or expired reset token',
+          code: 'INVALID_TOKEN',
+          timestamp: new Date().toISOString(),
+        },
         { status: 400 }
       );
     }
@@ -183,22 +204,16 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(
+    return createSuccessResponse(
       { message: 'Password updated successfully' },
-      { status: 200 }
+      'Password updated',
+      200
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.issues },
-        { status: 400 }
-      );
+      return handleValidationError(error);
     }
 
-    console.error('Password update error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleServerError(error);
   }
 }
