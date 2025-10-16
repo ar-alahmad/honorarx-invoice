@@ -63,11 +63,11 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 8 * 60 * 60, // 8 hours default (shorter for security)
+    maxAge: 2 * 60 * 60, // 2 hours default (will be overridden by JWT callback)
     updateAge: 5 * 60, // 5 minutes in seconds
   },
   jwt: {
-    maxAge: 8 * 60 * 60, // 8 hours default
+    maxAge: 2 * 60 * 60, // 2 hours default (will be overridden by JWT callback)
   },
   callbacks: {
     async jwt({ token, user, trigger }) {
@@ -79,14 +79,22 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         // Set session duration based on remember me preference
         if (token.rememberMe) {
           token.maxAge = 24 * 60 * 60; // 24 hours for remember me
+          token.exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // Set explicit expiry
         } else {
           token.maxAge = 2 * 60 * 60; // 2 hours for regular sessions
+          token.exp = Math.floor(Date.now() / 1000) + 2 * 60 * 60; // Set explicit expiry
         }
       }
 
       // Handle session refresh
       if (trigger === 'update') {
         token.iat = Math.floor(Date.now() / 1000);
+        // Update expiry time on refresh
+        if (token.rememberMe) {
+          token.exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+        } else {
+          token.exp = Math.floor(Date.now() / 1000) + 2 * 60 * 60;
+        }
       }
 
       return token;

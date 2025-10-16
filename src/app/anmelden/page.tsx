@@ -66,14 +66,31 @@ function LoginForm() {
         if (data.rememberMe) {
           localStorage.setItem('honorarx-remember-me', 'true');
           localStorage.setItem('honorarx-session-duration', '24h');
+          console.log('Login: Remember Me enabled - 24h session');
+          console.log(
+            'Login: localStorage set - honorarx-remember-me:',
+            localStorage.getItem('honorarx-remember-me')
+          );
         } else {
-          localStorage.removeItem('honorarx-remember-me');
+          localStorage.setItem('honorarx-remember-me', 'false');
           localStorage.setItem('honorarx-session-duration', '2h');
+          console.log(
+            'Login: Remember Me disabled - 2h session with browser close detection'
+          );
+          console.log(
+            'Login: localStorage set - honorarx-remember-me:',
+            localStorage.getItem('honorarx-remember-me')
+          );
         }
 
         // Check if user is authenticated
         const session = await getSession();
         if (session) {
+          console.log('Login: Session confirmed, redirecting to dashboard');
+          console.log(
+            'Login: Final localStorage check - honorarx-remember-me:',
+            localStorage.getItem('honorarx-remember-me')
+          );
           router.push('/dashboard');
         }
       }

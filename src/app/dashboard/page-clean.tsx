@@ -162,6 +162,7 @@ export default function DashboardPage() {
   };
 
   const handleSignOut = async () => {
+    console.log('LOGOUT CLICKED');
     await logoutManager.logout('/');
   };
 

@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { DropdownNavBar } from '@/components/ui/dropdown-navbar';
 import { useSession } from 'next-auth/react';
-import { secureLogout } from '@/lib/logout';
+import { secureLogout } from '@/lib/logout-manager';
 
 /**
  * NavBarDemo - Professional navigation component for HonorarX Invoice
@@ -31,6 +31,13 @@ export function NavBarDemo() {
   const isLoggedIn = !!session;
   const userFamilyName =
     session?.user?.name?.split(' ').pop()?.toUpperCase() || 'USER';
+
+  console.log(
+    'NavBarDemo: Component rendered, isLoggedIn:',
+    isLoggedIn,
+    'userFamilyName:',
+    userFamilyName
+  );
 
   const navItems = [
     {
@@ -107,8 +114,17 @@ export function NavBarDemo() {
               name: 'Abmelden',
               url: '#',
               icon: LogOut,
-              onClick: async () => {
-                await secureLogout('/');
+              onClick: async (e?: React.MouseEvent) => {
+                e?.preventDefault();
+                e?.stopPropagation();
+                console.log('Navbar: Logout button clicked');
+                console.log('Navbar: About to call secureLogout');
+                try {
+                  await secureLogout('/');
+                  console.log('Navbar: secureLogout completed');
+                } catch (error) {
+                  console.error('Navbar: secureLogout error:', error);
+                }
               },
             },
           ]

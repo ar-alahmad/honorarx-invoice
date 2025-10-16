@@ -11,7 +11,7 @@ interface DropdownItem {
   name: string;
   url: string;
   icon?: LucideIcon;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
 }
 
 interface NavItem {
@@ -396,14 +396,26 @@ export function DropdownNavBar({
                           return dropdownItem.onClick ? (
                             <button
                               key={dropdownItem.name}
-                              onClick={() => {
+                              onClick={(e) => {
+                                console.log(
+                                  'DropdownNavBar: Button clicked for:',
+                                  dropdownItem.name
+                                );
                                 // Immediately close dropdown and set states before action
                                 setActiveTab(item.name);
                                 setActiveDropdown(null);
                                 setClickOpenedDropdown(null);
                                 setHoveredDropdown(null);
                                 setActiveDropdownItem(dropdownItem.name);
-                                dropdownItem.onClick?.();
+                                console.log(
+                                  'DropdownNavBar: About to call onClick for:',
+                                  dropdownItem.name
+                                );
+                                dropdownItem.onClick?.(e);
+                                console.log(
+                                  'DropdownNavBar: onClick called for:',
+                                  dropdownItem.name
+                                );
                               }}
                               className={cn(
                                 'flex items-center px-4 py-2 text-sm transition-colors group relative w-full text-left',
