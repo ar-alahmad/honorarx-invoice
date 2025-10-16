@@ -19,6 +19,7 @@ export function SessionManager() {
   const bcRef = useRef<BroadcastChannel | null>(null);
   const [showWarning, setShowWarning] = useState(false);
   const [warningSeconds, setWarningSeconds] = useState(30);
+  const isWarningShowing = useRef(false);
 
   // Handle logout
   const handleLogout = useCallback(() => {
@@ -52,6 +53,7 @@ export function SessionManager() {
       // Show warning 30 seconds before logout (14.5 minutes)
       warningTimeout.current = setTimeout(
         () => {
+          isWarningShowing.current = true;
           setShowWarning(true);
           setWarningSeconds(30);
         },
@@ -76,6 +78,11 @@ export function SessionManager() {
 
   // Activity event handlers
   const handleActivity = useCallback(() => {
+    // If warning is showing, dismiss it
+    if (isWarningShowing.current) {
+      isWarningShowing.current = false;
+      setShowWarning(false);
+    }
     resetInactivityTimer();
   }, [resetInactivityTimer]);
 
@@ -95,20 +102,21 @@ export function SessionManager() {
       // For non-remember-me sessions, check if browser was closed
       if (rememberMe !== 'true') {
         const browserSessionId = sessionStorage.getItem('honorarx-browser-session-id');
-        const lastBrowserSessionId = localStorage.getItem('honorarx-last-browser-session-id');
+        const browserClosedFlag = localStorage.getItem('honorarx-browser-closed');
         
         // If no browser session ID in sessionStorage, this is a fresh browser session
         if (!browserSessionId) {
-          // Check if we had a previous session that should be invalidated
-          if (lastBrowserSessionId) {
+          // Check if browser was actually closed (not just refreshed)
+          if (browserClosedFlag === 'true') {
+            // Browser was closed, logout
+            localStorage.removeItem('honorarx-browser-closed');
             logoutManager.logout('/anmelden').catch(console.error);
             return;
           }
           
-          // Create new browser session ID
+          // Create new browser session ID (page refresh or first load)
           const newSessionId = Date.now().toString() + Math.random().toString(36);
           sessionStorage.setItem('honorarx-browser-session-id', newSessionId);
-          localStorage.setItem('honorarx-last-browser-session-id', newSessionId);
         }
       }
 
@@ -217,21 +225,6 @@ export function SessionManager() {
       if (rememberMe !== 'true') {
         const currentTime = Date.now();
         
-        // Check browser session ID
-        const browserSessionId = sessionStorage.getItem('honorarx-browser-session-id');
-        const lastBrowserSessionId = localStorage.getItem('honorarx-last-browser-session-id');
-        
-        // If browser session IDs don't match, browser was closed
-        if (!browserSessionId || browserSessionId !== lastBrowserSessionId) {
-          try {
-            bcRef.current?.postMessage('logout');
-            localStorage.setItem('honorarx-logout', '1');
-            setTimeout(() => localStorage.removeItem('honorarx-logout'), 2000);
-          } catch {}
-          logoutManager.logout('/anmelden').catch(console.error);
-          return;
-        }
-        
         // Check session start time
         const sessionStartTime = sessionStorage.getItem(
           'honorarx-session-start-time'
@@ -290,70 +283,42 @@ export function SessionManager() {
 
     // If user didn't choose "Remember Me", set up browser close detection
     if (rememberMe !== 'true') {
+      // Set a flag when page is being hidden
+      const handlePageHide = (e: PageTransitionEvent) => {
+        // If page is being cached (bfcache), it's likely a navigation, not close
+        if (!e.persisted) {
+          // Mark that browser might be closing
+          localStorage.setItem('honorarx-browser-closed', 'true');
+        }
+      };
+      
+      // Clear the flag when page becomes visible again (means it was just navigation/refresh)
+      const handlePageShow = () => {
+        localStorage.removeItem('honorarx-browser-closed');
+      };
+      
       const handleBeforeUnload = () => {
-
-        // Clear session flags
-        sessionStorage.removeItem('honorarx-session-active');
-        sessionStorage.removeItem('honorarx-session-heartbeat');
-
-        // Clear client-side storage
-        try {
-          localStorage.removeItem('honorarx-remember-me');
-          sessionStorage.clear();
-
-          // Clear NextAuth-related localStorage items
-          Object.keys(localStorage).forEach((key) => {
-            if (key.startsWith('next-auth') || key.includes('auth')) {
-              localStorage.removeItem(key);
-            }
-          });
-
-          // Send a request to invalidate the session on the server
-          // Use sendBeacon for reliable delivery even when page is unloading
-          const formData = new FormData();
-          formData.append('action', 'invalidate-session');
-
-          if (navigator.sendBeacon) {
-            navigator.sendBeacon('/api/auth/invalidate-session', formData);
-          } else {
-            // Fallback for browsers that don't support sendBeacon
-            fetch('/api/auth/invalidate-session', {
-              method: 'POST',
-              body: formData,
-              keepalive: true,
-            }).catch(() => {
-              // Ignore errors during page unload
-            });
-          }
-        } catch {
-          // Ignore errors during page unload
+        // Set flag on beforeunload
+        localStorage.setItem('honorarx-browser-closed', 'true');
+      };
+      
+      const handleVisibility = () => {
+        if (document.visibilityState === 'visible') {
+          // Page is visible again, clear the flag (was just a refresh/navigation)
+          localStorage.removeItem('honorarx-browser-closed');
         }
       };
 
-      const handlePageHide = () => {
-        /* mirror your beforeunload cleanup */
-      };
-      const handleVisibility = () => {
-        if (document.visibilityState === 'hidden') handlePageHide();
-      };
-      const handleFreeze = () => handlePageHide();
-
       window.addEventListener('beforeunload', handleBeforeUnload);
       window.addEventListener('pagehide', handlePageHide);
+      window.addEventListener('pageshow', handlePageShow);
       document.addEventListener('visibilitychange', handleVisibility);
-      document.addEventListener?.(
-        'freeze',
-        handleFreeze as EventListener
-      );
 
       return () => {
         window.removeEventListener('beforeunload', handleBeforeUnload);
         window.removeEventListener('pagehide', handlePageHide);
+        window.removeEventListener('pageshow', handlePageShow);
         document.removeEventListener('visibilitychange', handleVisibility);
-        document.removeEventListener?.(
-          'freeze',
-          handleFreeze as EventListener
-        );
         if (heartbeatInterval.current) {
           clearInterval(heartbeatInterval.current);
         }
