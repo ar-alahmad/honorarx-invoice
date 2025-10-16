@@ -100,23 +100,27 @@ export function SessionManager() {
       let rememberMe = localStorage.getItem('honorarx-remember-me');
       
       // For non-remember-me sessions, check if browser was closed
+      // Simple banking approach: sessionStorage is cleared when browser closes
       if (rememberMe !== 'true') {
         const browserSessionId = sessionStorage.getItem('honorarx-browser-session-id');
-        const browserClosedFlag = localStorage.getItem('honorarx-browser-closed');
+        const hadPreviousSession = localStorage.getItem('honorarx-had-session');
         
-        // If no browser session ID in sessionStorage, this is a fresh browser session
+        // If no browser session ID, this is a new browser session
         if (!browserSessionId) {
-          // Check if browser was actually closed (not just refreshed)
-          if (browserClosedFlag === 'true') {
-            // Browser was closed, logout
-            localStorage.removeItem('honorarx-browser-closed');
+          // Check if we had a previous session (browser was closed and reopened)
+          // vs first time login (no previous session)
+          if (hadPreviousSession === 'true') {
+            // Browser was closed and reopened, logout
+            localStorage.removeItem('honorarx-had-session');
             logoutManager.logout('/anmelden').catch(console.error);
             return;
           }
           
-          // Create new browser session ID (page refresh or first load)
+          // Create new browser session ID
           const newSessionId = Date.now().toString() + Math.random().toString(36);
           sessionStorage.setItem('honorarx-browser-session-id', newSessionId);
+          // Mark that we now have a session
+          localStorage.setItem('honorarx-had-session', 'true');
         }
       }
 
@@ -281,44 +285,12 @@ export function SessionManager() {
 
     const rememberMe = localStorage.getItem('honorarx-remember-me');
 
-    // If user didn't choose "Remember Me", set up browser close detection
+    // If user didn't choose "Remember Me", set up activity tracking
     if (rememberMe !== 'true') {
-      // Set a flag when page is being hidden
-      const handlePageHide = (e: PageTransitionEvent) => {
-        // If page is being cached (bfcache), it's likely a navigation, not close
-        if (!e.persisted) {
-          // Mark that browser might be closing
-          localStorage.setItem('honorarx-browser-closed', 'true');
-        }
-      };
+      // No need for beforeunload handlers - sessionStorage automatically clears on browser close
+      // This is the simple banking approach
       
-      // Clear the flag when page becomes visible again (means it was just navigation/refresh)
-      const handlePageShow = () => {
-        localStorage.removeItem('honorarx-browser-closed');
-      };
-      
-      const handleBeforeUnload = () => {
-        // Set flag on beforeunload
-        localStorage.setItem('honorarx-browser-closed', 'true');
-      };
-      
-      const handleVisibility = () => {
-        if (document.visibilityState === 'visible') {
-          // Page is visible again, clear the flag (was just a refresh/navigation)
-          localStorage.removeItem('honorarx-browser-closed');
-        }
-      };
-
-      window.addEventListener('beforeunload', handleBeforeUnload);
-      window.addEventListener('pagehide', handlePageHide);
-      window.addEventListener('pageshow', handlePageShow);
-      document.addEventListener('visibilitychange', handleVisibility);
-
       return () => {
-        window.removeEventListener('beforeunload', handleBeforeUnload);
-        window.removeEventListener('pagehide', handlePageHide);
-        window.removeEventListener('pageshow', handlePageShow);
-        document.removeEventListener('visibilitychange', handleVisibility);
         if (heartbeatInterval.current) {
           clearInterval(heartbeatInterval.current);
         }
