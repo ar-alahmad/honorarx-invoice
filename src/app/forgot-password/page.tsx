@@ -33,9 +33,12 @@ export default function ForgotPasswordPage() {
 
       if (response.ok) {
         setMessage(
-          'Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Link zum Zurücksetzen des Passworts gesendet.'
+          'Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Code zum Zurücksetzen des Passworts gesendet.'
         );
-        setEmail('');
+        // Redirect to password reset page with email
+        setTimeout(() => {
+          router.push(`/passwort-zuruecksetzen?email=${encodeURIComponent(email)}`);
+        }, 2000);
       } else {
         setError(data.error || 'Fehler beim Senden der E-Mail');
       }
@@ -74,7 +77,7 @@ export default function ForgotPasswordPage() {
 
           <form onSubmit={handleSubmit} className='space-y-4'>
             <p className='text-white/70 text-sm mb-4'>
-              Geben Sie Ihre E-Mail-Adresse ein, um einen Link zum Zurücksetzen
+              Geben Sie Ihre E-Mail-Adresse ein, um einen Code zum Zurücksetzen
               des Passworts zu erhalten.
             </p>
             <div>
@@ -95,7 +98,7 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
             <Button type='submit' disabled={isLoading} className='w-full'>
-              {isLoading ? 'Senden...' : 'Link senden'}
+              {isLoading ? 'Senden...' : 'Code senden'}
             </Button>
           </form>
 

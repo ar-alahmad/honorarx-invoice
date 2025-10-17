@@ -9,6 +9,7 @@ import { Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react';
 
 function PasswordResetForm() {
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,13 +19,14 @@ function PasswordResetForm() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get('token');
 
   useEffect(() => {
-    if (token) {
+    const emailParam = searchParams.get('email');
+    if (emailParam) {
+      setEmail(emailParam);
       setStep('reset');
     }
-  }, [token]);
+  }, [searchParams]);
 
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,8 +47,9 @@ function PasswordResetForm() {
 
       if (response.ok) {
         setMessage(
-          'Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Link zum Zurücksetzen des Passworts gesendet.'
+          'Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Code zum Zurücksetzen des Passworts gesendet.'
         );
+        setStep('reset');
       } else {
         setError(data.error || 'Fehler beim Senden der E-Mail');
       }
@@ -82,7 +85,8 @@ function PasswordResetForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          token,
+          email,
+          code,
           newPassword,
         }),
       });
@@ -129,8 +133,8 @@ function PasswordResetForm() {
             </h1>
             <p className='text-white/70'>
               {step === 'request'
-                ? 'Geben Sie Ihre E-Mail-Adresse ein, um einen Link zum Zurücksetzen des Passworts zu erhalten.'
-                : 'Geben Sie Ihr neues Passwort ein.'}
+                ? 'Geben Sie Ihre E-Mail-Adresse ein, um einen Code zum Zurücksetzen des Passworts zu erhalten.'
+                : 'Geben Sie den Code aus der E-Mail und Ihr neues Passwort ein.'}
             </p>
           </div>
 
@@ -168,11 +172,31 @@ function PasswordResetForm() {
               </div>
 
               <Button type='submit' disabled={isLoading} className='w-full'>
-                {isLoading ? 'Wird gesendet...' : 'Link senden'}
+                {isLoading ? 'Wird gesendet...' : 'Code senden'}
               </Button>
             </form>
           ) : (
             <form onSubmit={handleResetPassword} className='space-y-6'>
+              <div>
+                <label
+                  htmlFor='code'
+                  className='block text-sm font-medium text-white/80 mb-2'>
+                  Bestätigungscode
+                </label>
+                <input
+                  type='text'
+                  id='code'
+                  value={code}
+                  onChange={(e) =>
+                    setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
+                  }
+                  required
+                  maxLength={6}
+                  className='w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-2xl font-mono tracking-widest'
+                  placeholder='123456'
+                />
+              </div>
+
               <div>
                 <label
                   htmlFor='newPassword'

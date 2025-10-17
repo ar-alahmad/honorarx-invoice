@@ -21,7 +21,8 @@ const resetPasswordSchema = z.object({
 });
 
 const updatePasswordSchema = z.object({
-  token: z.string().min(1, 'Token is required'),
+  email: z.string().email('Invalid email address'),
+  code: z.string().min(6, 'Code must be 6 digits').max(6, 'Code must be 6 digits'),
   newPassword: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
@@ -50,31 +51,29 @@ export async function POST(request: NextRequest) {
       return createSuccessResponse(
         {
           message:
-            'If an account with that email exists, we have sent a password reset link.',
+            'If an account with that email exists, we have sent a password reset code.',
         },
         'Password reset request processed',
         200
       );
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+    // Generate 6-digit reset code
+    const resetCode = crypto.randomInt(100000, 999999).toString();
+    const resetCodeExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
 
-    // Save reset token to database
+    // Save reset code to database
     await db.user.update({
       where: { id: user.id },
       data: {
-        resetToken,
-        resetTokenExpiry,
+        resetPasswordCode: resetCode,
+        resetPasswordCodeExpiry: resetCodeExpiry,
       },
     });
 
     // Send password reset email
-    const resetUrl = `${process.env.NEXTAUTH_URL}/passwort-zuruecksetzen?token=${resetToken}`;
-
     console.log('Sending password reset email to:', email);
-    console.log('Reset URL:', resetUrl);
+    console.log('Reset code:', resetCode);
 
     const emailResult = await resend.emails.send({
       from: 'HonorarX <noreply@honorarx.de>',
@@ -103,23 +102,26 @@ export async function POST(request: NextRequest) {
             
             <p style="color: #333333; line-height: 1.6; margin-bottom: 20px;">
               Sie haben eine Anfrage zum Zurücksetzen Ihres Passworts für Ihr HonorarX-Konto gestellt. 
-              Klicken Sie auf den unten stehenden Button, um ein neues Passwort festzulegen:
+              Verwenden Sie den folgenden Bestätigungscode, um ein neues Passwort festzulegen:
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetUrl}" 
-                 style="background-color: #007bff; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 16px;">
-                Passwort zurücksetzen
-              </a>
+              <div style="background-color: #f8f9fa; border: 2px solid #007bff; border-radius: 8px; padding: 20px; display: inline-block;">
+                <h3 style="color: #333333; margin: 0 0 10px 0; font-size: 16px;">Ihr Bestätigungscode:</h3>
+                <div style="font-size: 32px; font-weight: bold; color: #007bff; letter-spacing: 4px; font-family: monospace;">
+                  ${resetCode}
+                </div>
+              </div>
             </div>
             
             <p style="color: #666666; line-height: 1.6; margin-bottom: 20px;">
               <strong>Wichtige Hinweise:</strong>
             </p>
             <ul style="color: #666666; line-height: 1.6; margin-bottom: 20px;">
-              <li>Dieser Link ist 1 Stunde gültig</li>
+              <li>Dieser Code ist 15 Minuten gültig</li>
+              <li>Geben Sie den Code auf der Passwort-Zurücksetzen-Seite ein</li>
               <li>Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren</li>
-              <li>Ihr Passwort wird nicht geändert, bis Sie den Link verwenden</li>
+              <li>Ihr Passwort wird nicht geändert, bis Sie den Code verwenden</li>
             </ul>
             
             <div style="margin-top: 40px; padding: 20px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff;">
@@ -146,7 +148,7 @@ export async function POST(request: NextRequest) {
     return createSuccessResponse(
       {
         message:
-          'If an account with that email exists, we have sent a password reset link.',
+          'If an account with that email exists, we have sent a password reset code.',
       },
       'Password reset email sent',
       200
@@ -170,14 +172,18 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { token, newPassword } = updatePasswordSchema.parse(body);
+    const { email, code, newPassword } = updatePasswordSchema.parse(body);
 
-    // Find user with valid reset token
+    // Sanitize email input
+    const sanitizedEmail = sanitizeEmail(email);
+
+    // Find user with valid reset code
     const user = await db.user.findFirst({
       where: {
-        resetToken: token,
-        resetTokenExpiry: {
-          gt: new Date(), // Token not expired
+        email: sanitizedEmail,
+        resetPasswordCode: code,
+        resetPasswordCodeExpiry: {
+          gt: new Date(), // Code not expired
         },
       },
     });
@@ -185,8 +191,8 @@ export async function PUT(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         {
-          error: 'Invalid or expired reset token',
-          code: 'INVALID_TOKEN',
+          error: 'Invalid or expired reset code',
+          code: 'INVALID_CODE',
           timestamp: new Date().toISOString(),
         },
         { status: 400 }
@@ -196,13 +202,13 @@ export async function PUT(request: NextRequest) {
     // Hash new password
     const hashedPassword = await hashPassword(newPassword);
 
-    // Update password and clear reset token
+    // Update password and clear reset code
     await db.user.update({
       where: { id: user.id },
       data: {
         password: hashedPassword,
-        resetToken: null,
-        resetTokenExpiry: null,
+        resetPasswordCode: null,
+        resetPasswordCodeExpiry: null,
       },
     });
 
