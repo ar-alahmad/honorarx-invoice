@@ -104,7 +104,7 @@ export function SessionManager() {
     }
 
     // Get remember-me preference
-    let rememberMe = localStorage.getItem('honorarx-remember-me');
+    const rememberMe = localStorage.getItem('honorarx-remember-me');
 
     // Browser close detection for non-remember-me sessions only
     if (rememberMe !== 'true') {
@@ -188,6 +188,8 @@ export function SessionManager() {
         });
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Note: 'session' is intentionally excluded from dependencies to prevent re-initialization on session object changes
   }, [status, handleActivity, resetInactivityTimer]);
 
   // Cross-tab sync (BroadcastChannel + storage fallback)
