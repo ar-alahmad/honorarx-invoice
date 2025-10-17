@@ -82,7 +82,7 @@ export default function RegistrierenPage() {
         <DynamicBackground />
       </ErrorBoundary>
 
-      <div className='relative z-10 min-h-screen flex items-center justify-center p-4'>
+      <div className='relative z-10 min-h-screen flex items-center justify-center p-4 pt-24 md:pt-28'>
         <div className='w-full max-w-md'>
           <div className='bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20'>
             <div className='text-center mb-8'>

@@ -227,7 +227,7 @@ export default function AnmeldenPage() {
         <DynamicBackground />
       </ErrorBoundary>
 
-      <div className='relative z-10 min-h-screen flex items-center justify-center p-4'>
+      <div className='relative z-10 min-h-screen flex items-center justify-center p-4 pt-24 md:pt-28'>
         <Suspense fallback={<div className='text-white text-xl'>Laden...</div>}>
           <LoginForm />
         </Suspense>

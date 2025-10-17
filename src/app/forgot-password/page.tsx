@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
         <DynamicBackground />
       </ErrorBoundary>
 
-      <div className='relative z-10 min-h-screen flex flex-col items-center justify-center p-4'>
+      <div className='relative z-10 min-h-screen flex flex-col items-center justify-center p-4 pt-24 md:pt-28'>
         <div className='bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20 text-center max-w-md w-full'>
           <h1 className='text-3xl font-bold text-white mb-6'>
             Passwort vergessen

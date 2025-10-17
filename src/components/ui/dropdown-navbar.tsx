@@ -61,6 +61,10 @@ export function DropdownNavBar({
   const [dropdownPosition, setDropdownPosition] = useState<{
     [key: string]: 'left' | 'center' | 'right';
   }>({});
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const scrollThreshold = 10; // Minimum scroll distance to trigger hide/show
+  const ticking = useRef(false); // Throttle flag for scroll performance
 
   // Update active state based on current pathname
   useEffect(() => {
@@ -95,6 +99,34 @@ export function DropdownNavBar({
       }
     }
   }, [pathname, items]);
+
+  // Handle navbar visibility on scroll - only show at top (with requestAnimationFrame throttling)
+  useEffect(() => {
+    const updateNavbarVisibility = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Only show navbar when at the very top of the page
+      if (currentScrollY <= scrollThreshold) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+      
+      lastScrollY.current = currentScrollY;
+      ticking.current = false;
+    };
+
+    const handleScroll = () => {
+      // Use requestAnimationFrame to throttle updates
+      if (!ticking.current) {
+        requestAnimationFrame(updateNavbarVisibility);
+        ticking.current = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -235,7 +267,17 @@ export function DropdownNavBar({
   };
 
   return (
-    <div
+    <motion.div
+      initial={{ y: 0, opacity: 1 }}
+      animate={{
+        y: isVisible ? 0 : -120,
+        opacity: isVisible ? 1 : 0,
+      }}
+      transition={{
+        duration: 0.4,
+        ease: [0.25, 0.1, 0.25, 1], // Smooth cubic bezier easing
+        opacity: { duration: 0.3 }, // Faster opacity fade
+      }}
       className={cn(
         'fixed top-4 left-1/2 -translate-x-1/2 z-50 pt-6',
         className
@@ -464,6 +506,6 @@ export function DropdownNavBar({
           );
         })}
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -116,7 +116,7 @@ function PasswordResetForm() {
         <DynamicBackground />
       </ErrorBoundary>
 
-      <div className='relative z-10 min-h-screen flex flex-col items-center justify-center p-4'>
+      <div className='relative z-10 min-h-screen flex flex-col items-center justify-center p-4 pt-24 md:pt-28'>
         <div className='bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20 w-full max-w-md'>
           <div className='text-center mb-8'>
             <div className='flex justify-center mb-4'>
