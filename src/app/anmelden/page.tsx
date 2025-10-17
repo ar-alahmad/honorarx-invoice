@@ -65,32 +65,38 @@ function LoginForm() {
         // Store remember me preference for session management
         if (data.rememberMe) {
           localStorage.setItem('honorarx-remember-me', 'true');
-          localStorage.setItem('honorarx-session-duration', '24h');
-          console.log('Login: Remember Me enabled - 24h session');
-          console.log(
-            'Login: localStorage set - honorarx-remember-me:',
-            localStorage.getItem('honorarx-remember-me')
-          );
+          localStorage.setItem('honorarx-session-duration', '30d');
+          
+          // CRITICAL: Set the server-side httpOnly cookie
+          try {
+            await fetch('/api/auth/remember-me', {
+              method: 'POST',
+              credentials: 'include',
+            });
+            console.log('Login: Remember Me enabled - 30 days session (server cookie set)');
+          } catch (error) {
+            console.error('Login: Failed to set remember-me cookie:', error);
+          }
         } else {
           localStorage.setItem('honorarx-remember-me', 'false');
           localStorage.setItem('honorarx-session-duration', '2h');
-          console.log(
-            'Login: Remember Me disabled - 2h session with browser close detection'
-          );
-          console.log(
-            'Login: localStorage set - honorarx-remember-me:',
-            localStorage.getItem('honorarx-remember-me')
-          );
+          
+          // Ensure remember-me cookie is cleared
+          try {
+            await fetch('/api/auth/remember-me', {
+              method: 'DELETE',
+              credentials: 'include',
+            });
+            console.log('Login: Remember Me disabled - 2h session with browser close + 10min inactivity');
+          } catch (error) {
+            console.error('Login: Failed to clear remember-me cookie:', error);
+          }
         }
 
         // Check if user is authenticated
         const session = await getSession();
         if (session) {
           console.log('Login: Session confirmed, redirecting to dashboard');
-          console.log(
-            'Login: Final localStorage check - honorarx-remember-me:',
-            localStorage.getItem('honorarx-remember-me')
-          );
           router.push('/dashboard');
         }
       }
@@ -164,7 +170,7 @@ function LoginForm() {
                 className='w-4 h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500/50 focus:ring-2'
               />
               <span className='ml-2 text-white/70 text-sm'>
-                Angemeldet bleiben (24h statt 2h)
+                Angemeldet bleiben (30 Tage statt 2h)
               </span>
             </label>
             <a

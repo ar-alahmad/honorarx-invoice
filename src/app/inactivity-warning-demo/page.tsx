@@ -43,9 +43,9 @@ export default function InactivityWarningDemoPage() {
             <div className='bg-gray-800 rounded-lg p-4'>
               <h3 className='text-white font-semibold mb-2'>Production Settings:</h3>
               <ul className='text-sm text-gray-300 space-y-1'>
-                <li>⏰ <strong>Warning appears:</strong> After 14.5 minutes of inactivity</li>
+                <li>⏰ <strong>Warning appears:</strong> After 9.5 minutes of inactivity</li>
                 <li>⚠️ <strong>Countdown:</strong> 30 seconds</li>
-                <li>🚪 <strong>Total time:</strong> 15 minutes until logout</li>
+                <li>🚪 <strong>Total time:</strong> 10 minutes until logout</li>
                 <li>🎨 <strong>Colors:</strong> Yellow → Orange → Red</li>
               </ul>
             </div>

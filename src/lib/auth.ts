@@ -110,7 +110,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         extendedToken.maxAge = 30 * 24 * 60 * 60;
         extendedToken.exp = now + 30 * 24 * 60 * 60;
       } else {
-        // No remember me: 2 hours max, but client-side will handle browser close + 15min inactivity
+        // No remember me: 2 hours max, but client-side will handle browser close + 10min inactivity
         extendedToken.maxAge = 2 * 60 * 60;
         extendedToken.exp = now + 2 * 60 * 60;
       }

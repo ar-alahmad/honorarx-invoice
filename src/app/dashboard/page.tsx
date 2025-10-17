@@ -6,7 +6,6 @@ import { logoutManager } from '@/lib/logout-manager';
 import { useRouter } from 'next/navigation';
 import { DynamicBackground, ErrorBoundary } from '@/components/effects';
 import { Button } from '@/components/ui/button';
-import { SessionManager } from '@/components/auth/SessionManager';
 import { SessionExpiryNotification } from '@/components/auth/SessionExpiryNotification';
 import { Leva } from 'leva';
 import {
@@ -597,7 +596,6 @@ export default function DashboardPage() {
       </div>
 
       <Leva hidden />
-      <SessionManager />
       <SessionExpiryNotification onLogout={handleSignOut} />
     </div>
   );
