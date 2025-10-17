@@ -20,6 +20,7 @@ export function SessionManager() {
   const [showWarning, setShowWarning] = useState(false);
   const [warningSeconds, setWarningSeconds] = useState(30);
   const isWarningShowing = useRef(false);
+  const isInitialized = useRef(false);
 
   // Handle logout
   const handleLogout = useCallback(() => {
@@ -40,7 +41,7 @@ export function SessionManager() {
     if (warningTimeout.current) {
       clearTimeout(warningTimeout.current);
     }
-    
+
     // Hide warning if shown
     setShowWarning(false);
 
@@ -48,8 +49,9 @@ export function SessionManager() {
     const rememberMe = localStorage.getItem('honorarx-remember-me');
     if (rememberMe !== 'true') {
       // Update last activity timestamp
-      sessionStorage.setItem('honorarx-last-activity', Date.now().toString());
-      
+      const now = Date.now();
+      sessionStorage.setItem('honorarx-last-activity', now.toString());
+
       // Show warning 30 seconds before logout (9.5 minutes)
       warningTimeout.current = setTimeout(
         () => {
@@ -59,7 +61,7 @@ export function SessionManager() {
         },
         9.5 * 60 * 1000
       ); // 9.5 minutes - show warning
-      
+
       // Auto logout after 10 minutes
       inactivityTimeout.current = setTimeout(
         () => {
@@ -86,9 +88,15 @@ export function SessionManager() {
     resetInactivityTimer();
   }, [resetInactivityTimer]);
 
-  // Main session initialization and management effect
+  // Session initialization effect - ONLY runs once on mount or when status changes to authenticated
   useEffect(() => {
-    if (status !== 'authenticated' || !session) return;
+    if (status !== 'authenticated' || !session) {
+      isInitialized.current = false;
+      return;
+    }
+
+    // Only initialize once per session
+    if (isInitialized.current) return;
 
     // CRITICAL: Check if logout is in progress - if so, don't interfere!
     if (logoutManager.isLogoutInProgress() || logoutManager.isLogoutFlagSet()) {
@@ -97,12 +105,14 @@ export function SessionManager() {
 
     // Get remember-me preference
     let rememberMe = localStorage.getItem('honorarx-remember-me');
-    
+
     // Browser close detection for non-remember-me sessions only
     if (rememberMe !== 'true') {
-      const browserSessionId = sessionStorage.getItem('honorarx-browser-session-id');
+      const browserSessionId = sessionStorage.getItem(
+        'honorarx-browser-session-id'
+      );
       const hadPreviousSession = localStorage.getItem('honorarx-had-session');
-      
+
       // sessionStorage is cleared when browser closes, so if browserSessionId is missing,
       // this is either: (1) first visit, or (2) browser was closed and reopened
       if (!browserSessionId) {
@@ -112,7 +122,7 @@ export function SessionManager() {
           logoutManager.logout('/anmelden').catch(console.error);
           return;
         }
-        
+
         // First time login: create browser session ID and set flag
         const newSessionId = Date.now().toString() + Math.random().toString(36);
         sessionStorage.setItem('honorarx-browser-session-id', newSessionId);
@@ -127,29 +137,49 @@ export function SessionManager() {
     sessionStartTime.current = Date.now();
     isRememberMe.current = rememberMe === 'true';
 
+    // Mark as initialized
+    isInitialized.current = true;
+
     // Set up heartbeat and inactivity tracking for non-remember-me sessions
     if (rememberMe !== 'true') {
       // Store session start time for age checking
-      sessionStorage.setItem('honorarx-session-start-time', Date.now().toString());
+      sessionStorage.setItem(
+        'honorarx-session-start-time',
+        Date.now().toString()
+      );
       sessionStorage.setItem('honorarx-session-active', 'true');
-      sessionStorage.setItem('honorarx-session-heartbeat', Date.now().toString());
+      sessionStorage.setItem(
+        'honorarx-session-heartbeat',
+        Date.now().toString()
+      );
 
       // Set up inactivity tracking
       resetInactivityTimer();
 
       // Add activity event listeners
-      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+      const events = [
+        'mousedown',
+        'mousemove',
+        'keypress',
+        'scroll',
+        'touchstart',
+        'click',
+      ];
       events.forEach((event) => {
         document.addEventListener(event, handleActivity, true);
       });
 
       // Set up heartbeat to keep session alive
       heartbeatInterval.current = setInterval(() => {
-        sessionStorage.setItem('honorarx-session-heartbeat', Date.now().toString());
+        sessionStorage.setItem(
+          'honorarx-session-heartbeat',
+          Date.now().toString()
+        );
       }, 10000); // Every 10 seconds
-      
-      // Cleanup function
+
+      // Cleanup function - ONLY runs on unmount or re-authentication
       return () => {
+        isInitialized.current = false;
         if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
         if (inactivityTimeout.current) clearTimeout(inactivityTimeout.current);
         if (warningTimeout.current) clearTimeout(warningTimeout.current);
@@ -158,7 +188,7 @@ export function SessionManager() {
         });
       };
     }
-  }, [session, status, handleActivity, resetInactivityTimer]);
+  }, [status, handleActivity, resetInactivityTimer]);
 
   // Cross-tab sync (BroadcastChannel + storage fallback)
   useEffect(() => {
@@ -187,21 +217,24 @@ export function SessionManager() {
   // Check session validity on page load (only runs once on mount)
   useEffect(() => {
     if (status !== 'authenticated' || !session) return;
-    if (logoutManager.isLogoutInProgress() || logoutManager.isLogoutFlagSet()) return;
+    if (logoutManager.isLogoutInProgress() || logoutManager.isLogoutFlagSet())
+      return;
 
     const rememberMe = localStorage.getItem('honorarx-remember-me');
 
     // For non-remember-me sessions, validate on page load
     if (rememberMe !== 'true') {
       const currentTime = Date.now();
-      const sessionStartTime = sessionStorage.getItem('honorarx-session-start-time');
+      const sessionStartTime = sessionStorage.getItem(
+        'honorarx-session-start-time'
+      );
       const lastActivity = sessionStorage.getItem('honorarx-last-activity');
 
       // Check last activity for inactivity timeout
       if (lastActivity) {
         const inactivityDuration = currentTime - parseInt(lastActivity);
         const maxInactivity = 10 * 60 * 1000; // 10 minutes
-        
+
         if (inactivityDuration > maxInactivity) {
           logoutManager.logout('/anmelden').catch(console.error);
           return;
@@ -225,7 +258,7 @@ export function SessionManager() {
   // Periodic session validity check (only for non-remember-me sessions)
   useEffect(() => {
     if (status !== 'authenticated' || !session) return;
-    
+
     const rememberMe = localStorage.getItem('honorarx-remember-me');
     if (rememberMe === 'true') return; // Skip for remember-me sessions
 
