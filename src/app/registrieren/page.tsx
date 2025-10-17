@@ -16,7 +16,6 @@ const registerSchema = z
     confirmPassword: z.string(),
     firstName: z.string().min(1, 'Vorname ist erforderlich'),
     lastName: z.string().min(1, 'Nachname ist erforderlich'),
-    company: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwörter stimmen nicht überein',
@@ -53,7 +52,6 @@ export default function RegistrierenPage() {
           password: data.password,
           firstName: data.firstName,
           lastName: data.lastName,
-          company: data.company,
         }),
       });
 
@@ -150,18 +148,6 @@ export default function RegistrierenPage() {
                     {errors.email.message}
                   </p>
                 )}
-              </div>
-
-              <div>
-                <label className='block text-white/80 text-sm font-medium mb-2'>
-                  Unternehmen (optional)
-                </label>
-                <input
-                  {...register('company')}
-                  type='text'
-                  className='w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent'
-                  placeholder='Mein Unternehmen GmbH'
-                />
               </div>
 
               <div>

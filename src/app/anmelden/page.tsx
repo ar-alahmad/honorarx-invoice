@@ -50,7 +50,7 @@ function LoginForm() {
       if (data.rememberMe) {
         localStorage.setItem('honorarx-remember-me', 'true');
         localStorage.setItem('honorarx-session-duration', '30d');
-        
+
         // Set the server-side httpOnly cookie BEFORE signIn
         try {
           const cookieResponse = await fetch('/api/auth/remember-me', {
@@ -58,18 +58,24 @@ function LoginForm() {
             credentials: 'include',
           });
           const cookieResult = await cookieResponse.json();
-          console.log('✅ Login: Remember-me cookie API response:', cookieResult);
+          console.log(
+            '✅ Login: Remember-me cookie API response:',
+            cookieResult
+          );
           console.log('✅ Login: Cookie should now be set on server');
-          
+
           // Verify cookie was set by checking document.cookie (won't show httpOnly, but we can check response)
-          console.log('✅ Login: All cookies visible to client:', document.cookie);
+          console.log(
+            '✅ Login: All cookies visible to client:',
+            document.cookie
+          );
         } catch (error) {
           console.error('❌ Login: Failed to set remember-me cookie:', error);
         }
       } else {
         localStorage.setItem('honorarx-remember-me', 'false');
         localStorage.setItem('honorarx-session-duration', '2h');
-        
+
         // Ensure remember-me cookie is cleared BEFORE signIn
         try {
           await fetch('/api/auth/remember-me', {
@@ -101,22 +107,24 @@ function LoginForm() {
       } else if (result?.ok) {
         // Login successful - localStorage and cookie already set above
         console.log('✅ Login: Session created successfully');
-        
+
         // Verify session and cookie status
         try {
           const checkResponse = await fetch('/api/auth/check-session');
           const checkData = await checkResponse.json();
           console.log('📊 Login: Session verification:', checkData);
-          
+
           if (data.rememberMe && !checkData.rememberMeCookie.exists) {
-            console.error('❌ WARNING: Remember-me cookie NOT found on server!');
+            console.error(
+              '❌ WARNING: Remember-me cookie NOT found on server!'
+            );
           } else if (data.rememberMe && checkData.rememberMeCookie.exists) {
             console.log('✅ Login: Remember-me cookie CONFIRMED on server');
           }
         } catch (error) {
           console.error('❌ Login: Failed to verify session:', error);
         }
-        
+
         console.log('🔄 Login: Redirecting to dashboard');
         router.push('/dashboard');
       }
@@ -190,7 +198,7 @@ function LoginForm() {
                 className='w-4 h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500/50 focus:ring-2'
               />
               <span className='ml-2 text-white/70 text-sm'>
-                Angemeldet bleiben (30 Tage statt 2h)
+                Angemeldet bleiben
               </span>
             </label>
             <a
