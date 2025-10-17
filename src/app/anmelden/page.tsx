@@ -45,6 +45,43 @@ function LoginForm() {
     setError('');
 
     try {
+      // CRITICAL: Set remember-me preference BEFORE calling signIn
+      // so the JWT callback can read it during token creation
+      if (data.rememberMe) {
+        localStorage.setItem('honorarx-remember-me', 'true');
+        localStorage.setItem('honorarx-session-duration', '30d');
+        
+        // Set the server-side httpOnly cookie BEFORE signIn
+        try {
+          const cookieResponse = await fetch('/api/auth/remember-me', {
+            method: 'POST',
+            credentials: 'include',
+          });
+          const cookieResult = await cookieResponse.json();
+          console.log('✅ Login: Remember-me cookie API response:', cookieResult);
+          console.log('✅ Login: Cookie should now be set on server');
+          
+          // Verify cookie was set by checking document.cookie (won't show httpOnly, but we can check response)
+          console.log('✅ Login: All cookies visible to client:', document.cookie);
+        } catch (error) {
+          console.error('❌ Login: Failed to set remember-me cookie:', error);
+        }
+      } else {
+        localStorage.setItem('honorarx-remember-me', 'false');
+        localStorage.setItem('honorarx-session-duration', '2h');
+        
+        // Ensure remember-me cookie is cleared BEFORE signIn
+        try {
+          await fetch('/api/auth/remember-me', {
+            method: 'DELETE',
+            credentials: 'include',
+          });
+          console.log('Login: Remember-me cookie cleared BEFORE signIn');
+        } catch (error) {
+          console.error('Login: Failed to clear remember-me cookie:', error);
+        }
+      }
+
       const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
@@ -62,43 +99,26 @@ function LoginForm() {
           setError('Ungültige Anmeldedaten');
         }
       } else if (result?.ok) {
-        // Store remember me preference for session management
-        if (data.rememberMe) {
-          localStorage.setItem('honorarx-remember-me', 'true');
-          localStorage.setItem('honorarx-session-duration', '30d');
+        // Login successful - localStorage and cookie already set above
+        console.log('✅ Login: Session created successfully');
+        
+        // Verify session and cookie status
+        try {
+          const checkResponse = await fetch('/api/auth/check-session');
+          const checkData = await checkResponse.json();
+          console.log('📊 Login: Session verification:', checkData);
           
-          // CRITICAL: Set the server-side httpOnly cookie
-          try {
-            await fetch('/api/auth/remember-me', {
-              method: 'POST',
-              credentials: 'include',
-            });
-            console.log('Login: Remember Me enabled - 30 days session (server cookie set)');
-          } catch (error) {
-            console.error('Login: Failed to set remember-me cookie:', error);
+          if (data.rememberMe && !checkData.rememberMeCookie.exists) {
+            console.error('❌ WARNING: Remember-me cookie NOT found on server!');
+          } else if (data.rememberMe && checkData.rememberMeCookie.exists) {
+            console.log('✅ Login: Remember-me cookie CONFIRMED on server');
           }
-        } else {
-          localStorage.setItem('honorarx-remember-me', 'false');
-          localStorage.setItem('honorarx-session-duration', '2h');
-          
-          // Ensure remember-me cookie is cleared
-          try {
-            await fetch('/api/auth/remember-me', {
-              method: 'DELETE',
-              credentials: 'include',
-            });
-            console.log('Login: Remember Me disabled - 2h session with browser close + 10min inactivity');
-          } catch (error) {
-            console.error('Login: Failed to clear remember-me cookie:', error);
-          }
+        } catch (error) {
+          console.error('❌ Login: Failed to verify session:', error);
         }
-
-        // Check if user is authenticated
-        const session = await getSession();
-        if (session) {
-          console.log('Login: Session confirmed, redirecting to dashboard');
-          router.push('/dashboard');
-        }
+        
+        console.log('🔄 Login: Redirecting to dashboard');
+        router.push('/dashboard');
       }
     } catch {
       setError('Ein Fehler ist aufgetreten');

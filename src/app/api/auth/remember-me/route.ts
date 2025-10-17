@@ -1,18 +1,14 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 
 /**
  * Remember Me API endpoint
  * Sets/clears an httpOnly cookie as the server-side source of truth
- * Protected: Requires authentication to prevent unauthorized cookie manipulation
+ * Called BEFORE authentication to set cookie for JWT callback to read
  */
 export async function POST() {
-  // Require authentication to set remember-me cookie
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  // NOTE: No auth check here because this is called BEFORE signIn() during login
+  // The remember-me cookie is only read by the server-side JWT callback
+  // and doesn't grant access by itself - it just influences token expiry
   const res = NextResponse.json({ ok: true });
   res.cookies.set('honorarx-remember-me', 'true', {
     httpOnly: true,

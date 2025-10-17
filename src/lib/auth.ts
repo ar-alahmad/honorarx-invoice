@@ -65,15 +65,22 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           data: { lastLoginAt: new Date() },
         });
 
+        const rememberMeValue =
+          (credentials as { rememberMe?: string | boolean }).rememberMe ===
+            'true' ||
+          (credentials as { rememberMe?: string | boolean }).rememberMe ===
+            true;
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Credentials Provider] Authorize called');
+          console.log('[Credentials Provider] Remember-me from credentials:', rememberMeValue);
+        }
+
         return {
           id: user.id,
           email: user.email,
           name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-          rememberMe:
-            (credentials as { rememberMe?: string | boolean }).rememberMe ===
-              'true' ||
-            (credentials as { rememberMe?: string | boolean }).rememberMe ===
-              true,
+          rememberMe: rememberMeValue,
         };
       },
     }),
@@ -93,6 +100,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       const rememberCookie =
         cookieStore.get('honorarx-remember-me')?.value === 'true';
 
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[JWT Callback] Remember-me cookie:', rememberCookie);
+      }
+
       // Persist the flag on the token so session() can read it
       const extendedToken = token as ExtendedToken;
       const extendedUser = user as ExtendedUser | undefined;
@@ -109,10 +120,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         // Remember me: 30 days - stays logged in until manual logout
         extendedToken.maxAge = 30 * 24 * 60 * 60;
         extendedToken.exp = now + 30 * 24 * 60 * 60;
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[JWT Callback] ✅ Remember-me ENABLED - 30 days session');
+        }
       } else {
         // No remember me: 2 hours max, but client-side will handle browser close + 10min inactivity
         extendedToken.maxAge = 2 * 60 * 60;
         extendedToken.exp = now + 2 * 60 * 60;
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[JWT Callback] ⏱️  Remember-me DISABLED - 2 hours session');
+        }
       }
 
       if (trigger === 'update') {
@@ -173,6 +192,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60, // 30 days - critical for remember-me!
       },
     },
     callbackUrl: {
