@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { DynamicBackground, ErrorBoundary } from '@/components/effects';
-import { Button, Pill, AnimatedText } from '@/components/ui';
+import { Button, Pill, AnimatedText, SplitAnimatedText } from '@/components/ui';
 import { Leva } from 'leva';
 
 export default function Home() {
@@ -36,15 +36,47 @@ export default function Home() {
             className='inline-block cursor-pointer transition-all duration-300 hover:scale-105'
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}>
-            <AnimatedText text="HonorarX" className='tracking-wider' staggerDelay={0.15} /> <br />
-            <i className='font-light'>Rechnung</i>
+            <AnimatedText
+              text='HonorarX'
+              className='tracking-wider'
+              staggerDelay={0.15}
+            />{' '}
+            <br />
+            <i
+              className='font-light'
+              style={{
+                overflow: 'visible',
+                display: 'inline-block',
+              }}>
+              <SplitAnimatedText
+                leftText='Rech'
+                rightText='nung'
+                delay={0.5}
+                staggerDelay={0.1}
+              />
+            </i>
           </span>
         </h1>
-        <p className='font-mono text-sm sm:text-base text-foreground/60 text-balance mt-8 max-w-[440px] mx-auto'>
-          Professionelle schnelle sichere <br />
-          Rechnungsverwaltung mit beeindruckenden <br />
-          visuellen Erlebnissen
-        </p>
+        <div className='font-mono text-sm sm:text-base text-foreground/60 text-balance mt-8 max-w-[440px] mx-auto'>
+          <AnimatedText
+            text='Professionelle schnelle sichere'
+            delay={0.8}
+            staggerDelay={0.025}
+            className='block'
+          />
+          <AnimatedText
+            text='Rechnungsverwaltung mit beeindruckenden'
+            delay={1.0}
+            staggerDelay={0.025}
+            className='block'
+          />
+          <AnimatedText
+            text='visuellen Erlebnissen'
+            delay={1.2}
+            staggerDelay={0.025}
+            className='block'
+          />
+        </div>
 
         <div className='flex flex-col sm:flex-row gap-4 items-center justify-center mt-14'>
           <Link href='/registrieren'>
