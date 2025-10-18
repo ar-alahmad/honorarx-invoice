@@ -12,6 +12,7 @@ import {
   Shield,
   FileCheck,
   LogOut,
+  Settings,
 } from 'lucide-react';
 import { DropdownNavBar } from '@/components/ui/dropdown-navbar';
 import { useSession } from 'next-auth/react';
@@ -101,6 +102,11 @@ export function NavBar() {
               name: 'Dashboard',
               url: '/dashboard',
               icon: User,
+            },
+            {
+              name: 'Profile',
+              url: '/profil',
+              icon: Settings,
             },
             {
               name: 'Abmelden',
