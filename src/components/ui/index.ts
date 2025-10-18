@@ -9,3 +9,4 @@
 export { Button, buttonVariants } from './button';
 export { Pill } from './pill';
 export { DropdownNavBar } from './dropdown-navbar';
+export { AnimatedText } from './animated-text';

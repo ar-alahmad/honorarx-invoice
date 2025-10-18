@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { DynamicBackground, ErrorBoundary } from '@/components/effects';
-import { Button, Pill } from '@/components/ui';
+import { Button, Pill, AnimatedText } from '@/components/ui';
 import { Leva } from 'leva';
 
 export default function Home() {
@@ -36,7 +36,7 @@ export default function Home() {
             className='inline-block cursor-pointer transition-all duration-300 hover:scale-105'
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}>
-            <span className='tracking-wider'>HonorarX</span> <br />
+            <AnimatedText text="HonorarX" className='tracking-wider' staggerDelay={0.15} /> <br />
             <i className='font-light'>Rechnung</i>
           </span>
         </h1>
