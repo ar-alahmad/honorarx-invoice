@@ -94,11 +94,10 @@ export default function DashboardPage() {
           overdueInvoices: 1,
         });
       } else {
-        setError('Fehler beim Laden der Daten');
+        console.error('Error loading user data');
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
-      setError('Netzwerkfehler beim Laden der Daten');
     } finally {
       setIsLoading(false);
     }
